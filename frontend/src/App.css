@@ -1,0 +1,38 @@
+/* App Container */
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  transition: background-color 0.3s ease;
+}
+
+.app.dark-mode {
+  color-scheme: dark;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  gap: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .main-content {
+    padding: 16px;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    padding: 12px;
+  }
+}
+
