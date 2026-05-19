@@ -1,75 +1,49 @@
-# React + TypeScript + Vite
+# CP Problem Finder
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A fast and intuitive search engine frontend for Competitive Programming (CP) and Data Structures & Algorithms (DSA) problems. Built with React and TypeScript, it allows users to easily search, browse, and organize coding problems.
 
-Currently, two official plugins are available:
+## 🚀 Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+* **Real-time Search:** Filter problems instantly by title or tags (e.g., dynamic programming, graphs, greedy).
+* **Theme Support:** Toggle between Dark and Light modes for a comfortable viewing experience.
+* **Rich Problem Table:** View essential problem information at a glance, including Platform icons, Title, Color-coded Tags, and Difficulty.
+* **Modern UI/UX:** Clean, responsive design built with custom CSS, featuring clearable search inputs and a Floating Action Button (FAB).
 
-## React Compiler
+## 🛠️ Tech Stack
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+* **Framework:** React 18
+* **Language:** TypeScript
+* **Build Tool:** Vite
+* **Styling:** Vanilla CSS
 
-Note: This will impact Vite dev & build performances.
+## 📦 Getting Started
 
-## Expanding the ESLint configuration
+### Prerequisites
+* Node.js (v18+ recommended)
+* npm or yarn
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Installation
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+1. Navigate to the frontend directory:
+   ```bash
+   cd frontend
+   ```
+2. Install the dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 📝 ToDo / Future Improvements
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+* **Backend Integration:** Replace the current `mockProblems` static data with real REST/GraphQL API calls.
+* **Add Problem Feature:** Connect the Floating Action Button (FAB) to a modal or form allowing users to submit new problems to the database.
+* **Advanced Filtering:** Introduce dedicated dropdowns to filter problems specifically by Platform (e.g., LeetCode, Codeforces) and Difficulty (Easy, Medium, Hard).
+* **Pagination & Sorting:** Implement pagination or infinite scrolling for the problem table, along with column sorting.
+* **User Authentication:** Add login/registration to support personalized problem lists, favorites, and user profiles.
+* **Notifications:** Implement a functional notification dropdown for the bell icon in the header.
+* **Global State Management:** Integrate Redux, Zustand, or React Context to manage complex states as the app grows.
+* **Auto-suggestions:** Add intelligent auto-complete/suggestions to the search bar based on available tags in the database.

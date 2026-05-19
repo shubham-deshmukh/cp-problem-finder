@@ -39,23 +39,21 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #1a1a2e;
-    --bg-secondary: #16213e;
-    --border: #2e303a;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --shadow: rgba(0, 0, 0, 0.3) 0 2px 8px;
+.dark-mode {
+  --text: #9ca3af;
+  --text-h: #f3f4f6;
+  --bg: #1a1a2e;
+  --bg-secondary: #16213e;
+  --border: #2e303a;
+  --accent: #c084fc;
+  --accent-bg: rgba(192, 132, 252, 0.15);
+  --accent-border: rgba(192, 132, 252, 0.5);
+  --shadow: rgba(0, 0, 0, 0.3) 0 2px 8px;
 
-    --tag-blue: rgba(21, 101, 192, 0.2);
-    --tag-green: rgba(46, 125, 50, 0.2);
-    --tag-yellow: rgba(249, 168, 37, 0.2);
-    --tag-purple: rgba(123, 31, 162, 0.2);
-  }
+  --tag-blue: rgba(21, 101, 192, 0.2);
+  --tag-green: rgba(46, 125, 50, 0.2);
+  --tag-yellow: rgba(249, 168, 37, 0.2);
+  --tag-purple: rgba(123, 31, 162, 0.2);
 }
 
 html, body {
