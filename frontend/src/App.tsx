@@ -5,10 +5,13 @@ import { SearchBar } from './components/SearchBar';
 import { mockProblems } from './data';
 import { FAB } from './components/FAB';
 import { ProblemTable } from './components/ProblemTable';
+import AddProblemModal from './components/AddProblemModal';
 
 function App() {
   const [searchValue, setSearchValue] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isAddProblemModalOpen, setIsAddProblemModalOpen] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
@@ -35,7 +38,21 @@ function App() {
         <SearchBar searchValue={searchValue} onSearchChange={setSearchValue} />
         <ProblemTable problems={filteredProblems} />
       </div>
-      <FAB onClick={() => console.log('Add problem clicked')} />
+      <FAB onClick={() => setIsAddProblemModalOpen(true)} />
+      <AddProblemModal
+        isOpen={isAddProblemModalOpen}
+        isLoading={isAnalyzing}
+        onClose={() => !isAnalyzing && setIsAddProblemModalOpen(false)}
+        onSubmit={(problem) => {
+          setIsAnalyzing(true);
+          // Simulate backend analysis and ingestion
+          setTimeout(() => {
+            console.log('Problem analyzed and added:', problem);
+            setIsAnalyzing(false);
+            setIsAddProblemModalOpen(false);
+          }, 2000);
+        }}
+      />
     </div>
   );
 }
