@@ -17,9 +17,9 @@ export function SearchBar({ searchValue, onSearchChange }: SearchBarProps) {
           value={searchValue}
           onChange={(e) => onSearchChange(e.target.value)}
         />
-        <span className="search-suggestion">
+        {/* <span className="search-suggestion">
           {searchValue ? '' : 'dynamic programming, recursion, graphs...'}
-        </span>
+        </span> */}
         {searchValue && (
           <button 
             className="clear-button"
