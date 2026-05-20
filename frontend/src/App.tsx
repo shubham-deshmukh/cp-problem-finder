@@ -67,8 +67,22 @@ function App() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || 'Failed to add problem. Please try again.');
+        let errorMessage = 'Failed to add problem. Please try again.';
+        try {
+          const errorData = await response.json();
+          // Handle FastAPI 422 Unprocessable Entity errors specifically
+          if (response.status === 422 && errorData.detail) {
+            if (Array.isArray(errorData.detail) && errorData.detail.length > 0) {
+              // Extract the main message from the first validation error
+              errorMessage = errorData.detail[0].msg;
+            } else if (typeof errorData.detail === 'string') {
+              errorMessage = errorData.detail;
+            }
+          } else if (errorData.detail) { // Handle other generic errors with a 'detail' key
+            errorMessage = errorData.detail;
+          }
+        } catch (e) { /* Response may not have a JSON body, fall back to default message */ }
+        throw new Error(errorMessage);
       }
 
       const newProblem: Problem = await response.json();
