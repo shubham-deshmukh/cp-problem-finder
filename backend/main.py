@@ -44,6 +44,22 @@ PLATFORM_ICONS = {
     "CSES": "🔷"
 }
 
+# Constant list of available tags
+AVAILABLE_TAGS = [
+    "dynamic programming",
+    "graphs",
+    "greedy",
+    "recursion",
+    "strings",
+    "trees",
+    "binary search",
+    "two pointers",
+    "backtracking",
+    "bit manipulation",
+    "segment trees",
+    "trie",
+]
+
 # Pydantic model for incoming frontend request
 class ProblemCreate(BaseModel):
     link: HttpUrl
@@ -125,6 +141,13 @@ app.add_middleware(
 @app.get("/")
 def read_root():
     return {"message": "DSA Search Engine API is running. Visit /docs for Swagger UI."}
+
+@app.get("/tags", response_model=List[str])
+def get_tags():
+    """
+    Fetch all available problem tags.
+    """
+    return AVAILABLE_TAGS
 
 @app.get("/search", response_model=List[Problem])
 def search_problems(
