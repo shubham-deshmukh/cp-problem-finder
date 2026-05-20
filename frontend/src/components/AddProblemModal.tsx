@@ -13,7 +13,9 @@ const AddProblemModal: React.FC<AddProblemModalProps> = ({ isOpen, isLoading = f
   const [link, setLink] = useState('');
   const [platform, setPlatform] = useState('LeetCode');
   const [difficulty, setDifficulty] = useState<DifficultyLevel>('Easy');
-  const [tags, setTags] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const [isFetchingTags, setIsFetchingTags] = useState(false);
 
   // Reset fields when the modal is opened
   useEffect(() => {
@@ -21,11 +23,40 @@ const AddProblemModal: React.FC<AddProblemModalProps> = ({ isOpen, isLoading = f
       setLink('');
       setPlatform('LeetCode');
       setDifficulty('Easy');
-      setTags('');
+      setTags([]);
+
+      const fetchTags = async () => {
+        setIsFetchingTags(true);
+        try {
+          // Note: Update this URL to match your actual backend API endpoint for tags
+          const response = await fetch('http://127.0.0.1:8000/tags');
+          if (!response.ok) throw new Error('Failed to fetch tags');
+          const data = await response.json();
+          setAvailableTags(data || []);
+        } catch (error) {
+          console.error('Error fetching tags:', error);
+          setAvailableTags([]);
+        } finally {
+          setIsFetchingTags(false);
+        }
+      };
+
+      fetchTags();
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
+
+  const handleAddTag = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedTag = e.target.value;
+    if (selectedTag && !tags.includes(selectedTag)) {
+      setTags([...tags, selectedTag]);
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    setTags(tags.filter(tag => tag !== tagToRemove));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +65,7 @@ const AddProblemModal: React.FC<AddProblemModalProps> = ({ isOpen, isLoading = f
       link,
       platform,
       difficulty,
-      tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
+      tags
     };
     
     onSubmit(newProblem);
@@ -83,16 +114,31 @@ const AddProblemModal: React.FC<AddProblemModalProps> = ({ isOpen, isLoading = f
           </div>
 
           <div className="form-group">
-            <label htmlFor="tags">Tags (comma-separated)</label>
-            <input 
-              type="text" 
-              id="tags" 
-              className="form-control" 
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              placeholder="e.g. Arrays, Hash Table"
-              disabled={isLoading}
-            />
+          <label htmlFor="tags">Tags</label>
+          <div 
+            className="form-control" 
+            style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', minHeight: '38px', padding: '6px 12px', alignItems: 'center', height: 'auto' }}
+          >
+            {tags.map(tag => (
+              <span key={tag} style={{ background: 'rgba(150, 150, 150, 0.2)', color: 'inherit', padding: '2px 8px', borderRadius: '4px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                {tag}
+                <button type="button" onClick={() => handleRemoveTag(tag)} style={{ border: 'none', background: 'transparent', color: 'inherit', opacity: 0.7, cursor: 'pointer', padding: '0', fontSize: '1.1rem', lineHeight: '1', display: 'flex' }}>
+                  &times;
+                </button>
+              </span>
+            ))}
+            <select 
+              onChange={handleAddTag} 
+              value="" 
+              style={{ border: 'none', outline: 'none', background: 'transparent', color: 'inherit', flexGrow: 1, minWidth: '150px', padding: '0', fontSize: 'inherit' }}
+              disabled={isLoading || isFetchingTags}
+            >
+              <option value="" disabled style={{ background: 'var(--bg, #1e1e1e)' }}>{isFetchingTags ? 'Loading tags...' : 'Select a tag...'}</option>
+              {availableTags.filter(t => !tags.includes(t)).map(t => (
+                <option key={t} value={t} style={{ background: 'var(--bg, #1e1e1e)' }}>{t}</option>
+              ))}
+            </select>
+          </div>
           </div>
 
           <div className="modal-actions">
