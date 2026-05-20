@@ -1,12 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './AddProblemModal.css';
-
-export interface ProblemData {
-  link: string;
-  platform: string;
-  difficulty: string;
-  tags: string[];
-}
+import { type ProblemData, type DifficultyLevel } from '../types';
 
 interface AddProblemModalProps {
   isOpen: boolean;
@@ -18,7 +12,7 @@ interface AddProblemModalProps {
 const AddProblemModal: React.FC<AddProblemModalProps> = ({ isOpen, isLoading = false, onClose, onSubmit }) => {
   const [link, setLink] = useState('');
   const [platform, setPlatform] = useState('LeetCode');
-  const [difficulty, setDifficulty] = useState('Easy');
+  const [difficulty, setDifficulty] = useState<DifficultyLevel>('Easy');
   const [tags, setTags] = useState('');
 
   // Reset fields when the modal is opened
@@ -81,10 +75,10 @@ const AddProblemModal: React.FC<AddProblemModalProps> = ({ isOpen, isLoading = f
 
           <div className="form-group">
             <label htmlFor="difficulty">Difficulty</label>
-            <select id="difficulty" className="form-control" value={difficulty} onChange={(e) => setDifficulty(e.target.value)} disabled={isLoading}>
+            <select id="difficulty" className="form-control" value={difficulty} onChange={(e) => setDifficulty(e.target.value as DifficultyLevel)} disabled={isLoading}>
               <option value="Easy">Easy</option>
               <option value="Medium">Medium</option>
-              <option value="Hard">Hard</option>
+              <option value="High">High</option>
             </select>
           </div>
 

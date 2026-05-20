@@ -10,6 +10,13 @@ export interface Problem {
   isNew?: boolean;
 }
 
+export interface ProblemData {
+  link: string;
+  platform: string;
+  difficulty: DifficultyLevel;
+  tags: string[];
+}
+
 export type TagType = 'dynamic programming' | 'strings' | 'greedy' | 'recursion' | 'graphs';
 
 export type DifficultyLevel = 'Easy' | 'Medium' | 'High';

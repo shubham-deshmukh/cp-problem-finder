@@ -5,7 +5,7 @@ import { SearchBar } from './components/SearchBar';
 import { FAB } from './components/FAB';
 import { ProblemTable } from './components/ProblemTable';
 import AddProblemModal from './components/AddProblemModal';
-import { type Problem } from './types';
+import { type Problem, type ProblemData } from './types';
 
 function App() {
   const [searchValue, setSearchValue] = useState('');
@@ -26,7 +26,7 @@ function App() {
         const response = await fetch(`http://127.0.0.1:8000/search?q=${encodedQuery}&limit=8&offset=0`, { signal });
         if (!response.ok) throw new Error('Failed to fetch data');
         const data = await response.json();
-        setProblems(data.hits || []);
+        setProblems(data || []);
       } catch (error) {
         if ((error as Error).name !== 'AbortError') {
           console.error('Error fetching problems:', error);
@@ -54,6 +54,35 @@ function App() {
     }
   };
 
+  const handleAddProblem = async (problemData: ProblemData) => {
+    setIsAnalyzing(true);
+    try {
+      // Note: Update this URL to match your actual backend API endpoint for adding problems
+      const response = await fetch('http://127.0.0.1:8000/problems', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(problemData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'Failed to add problem. Please try again.');
+      }
+
+      const newProblem: Problem = await response.json();
+      // Add the new problem to the top of the list
+      setProblems(prevProblems => [newProblem, ...prevProblems]);
+      setIsAddProblemModalOpen(false);
+    } catch (error) {
+      console.error('Error adding problem:', error);
+      alert((error as Error).message); // Show a simple alert on failure
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   return (
     <div className={`app ${isDarkMode ? 'dark-mode' : ''}`}>
       <Header onThemeToggle={toggleTheme} />
@@ -70,15 +99,7 @@ function App() {
         isOpen={isAddProblemModalOpen}
         isLoading={isAnalyzing}
         onClose={() => !isAnalyzing && setIsAddProblemModalOpen(false)}
-        onSubmit={(problem) => {
-          setIsAnalyzing(true);
-          // Simulate backend analysis and ingestion
-          setTimeout(() => {
-            console.log('Problem analyzed and added:', problem);
-            setIsAnalyzing(false);
-            setIsAddProblemModalOpen(false);
-          }, 2000);
-        }}
+        onSubmit={handleAddProblem}
       />
     </div>
   );
