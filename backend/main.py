@@ -8,7 +8,7 @@ import logging
 import os
 import time
 from dotenv import load_dotenv
-from pydantic import BaseModel
+from pydantic import BaseModel, HttpUrl, field_validator, model_validator
 
 logger = logging.getLogger(__name__)
 
@@ -46,10 +46,32 @@ PLATFORM_ICONS = {
 
 # Pydantic model for incoming frontend request
 class ProblemCreate(BaseModel):
-    link: str
+    link: HttpUrl
     platform: str
     difficulty: str
     tags: List[str]
+
+    @field_validator('platform')
+    @classmethod
+    def check_platform(cls, v):
+        valid_platforms = ["LeetCode", "Codeforces", "AtCoder", "CodeChef", "CSES"]
+        if v not in valid_platforms:
+            raise ValueError(f"Platform must be one of: {', '.join(valid_platforms)}")
+        return v
+
+    @model_validator(mode='after')
+    def check_domain_matches_platform(self):
+        platform_domains = {
+            "LeetCode": "leetcode.com",
+            "Codeforces": "codeforces.com",
+            "AtCoder": "atcoder.jp",
+            "CodeChef": "codechef.com",
+            "CSES": "cses.fi"
+        }
+        expected_domain = platform_domains.get(self.platform)
+        if expected_domain and expected_domain not in str(self.link):
+            raise ValueError(f"URL domain does not match the selected platform. Expected domain: '{expected_domain}'")
+        return self
 
 # Pydantic model representing the full DB document
 class Problem(BaseModel):
@@ -150,7 +172,8 @@ def add_problem(problem_in: ProblemCreate):
     Add a new DSA problem to the search index.
     """
     # Extract title from the link (e.g., .../longest-common-subsequence/ -> Longest Common Subsequence)
-    raw_slug = problem_in.link.rstrip('/').split('/')[-1]
+    link_str = str(problem_in.link)
+    raw_slug = link_str.rstrip('/').split('/')[-1]
     extracted_title = raw_slug.replace('-', ' ').title()
 
     # Determine the platform icon or use a default one
@@ -162,7 +185,7 @@ def add_problem(problem_in: ProblemCreate):
         "platform": problem_in.platform,
         "platformIcon": platform_icon,
         "title": extracted_title,
-        "link": problem_in.link,
+        "link": link_str,
         "tags": problem_in.tags,
         "difficulty": problem_in.difficulty,
         "isNew": True
