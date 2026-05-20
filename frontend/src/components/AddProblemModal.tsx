@@ -97,10 +97,11 @@ const AddProblemModal: React.FC<AddProblemModalProps> = ({ isOpen, isLoading = f
           <div className="form-group">
             <label htmlFor="platform">Platform</label>
             <select id="platform" className="form-control" value={platform} onChange={(e) => setPlatform(e.target.value)} disabled={isLoading}>
-              <option value="LeetCode">LeetCode</option>
+              <option value="Leetcode">Leetcode</option>
               <option value="Codeforces">Codeforces</option>
-              <option value="HackerRank">CSES</option>
-              <option value="GeeksforGeeks">Atcoder</option>
+              <option value="CSES">CSES</option>
+              <option value="Atcoder">Atcoder</option>
+              <option value="Codechef">Codechef</option>
             </select>
           </div>
 
