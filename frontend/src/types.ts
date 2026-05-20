@@ -6,6 +6,7 @@ export interface Problem {
   title: string;
   tags: string[];
   difficulty: 'Easy' | 'Medium' | 'High';
+  link: string;
   isNew?: boolean;
 }
 

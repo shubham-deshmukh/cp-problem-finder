@@ -8,6 +8,7 @@ export const mockProblems: Problem[] = [
     title: 'Longest Common Subsequence',
     tags: ['dynamic programming', 'strings', 'greedy', 'recursion'],
     difficulty: 'High',
+    link: '',
   },
   {
     id: 2,
@@ -16,6 +17,7 @@ export const mockProblems: Problem[] = [
     title: 'Edit Distance',
     tags: ['dynamic programming', 'graphs', 'graphs'],
     difficulty: 'High',
+    link: '',
   },
   {
     id: 3,
@@ -24,6 +26,7 @@ export const mockProblems: Problem[] = [
     title: 'Traveling Salesman',
     tags: ['dynamic programming', 'strings', 'greedy'],
     difficulty: 'Medium',
+    link: '',
   },
   {
     id: 4,
@@ -32,6 +35,7 @@ export const mockProblems: Problem[] = [
     title: 'Longest Connection',
     tags: ['dynamic programming', 'graphs', 'greedy'],
     difficulty: 'High',
+    link: '',
   },
   {
     id: 5,
@@ -40,6 +44,7 @@ export const mockProblems: Problem[] = [
     title: 'Traveling Pattern',
     tags: ['dynamic programming', 'greedy', 'recursion', 'recursion'],
     difficulty: 'High',
+    link: '',
   },
   {
     id: 6,
@@ -48,6 +53,7 @@ export const mockProblems: Problem[] = [
     title: 'Longest Subsequence',
     tags: ['dynamic programming', 'greedy', 'recursion', 'graphs'],
     difficulty: 'High',
+    link: '',
   },
   {
     id: 7,
@@ -56,6 +62,7 @@ export const mockProblems: Problem[] = [
     title: 'Monestriatic Function',
     tags: ['dynamic programming', 'strings', 'greedy'],
     difficulty: 'High',
+    link: '',
   },
   {
     id: 8,
@@ -64,6 +71,7 @@ export const mockProblems: Problem[] = [
     title: 'Traveling Salesman',
     tags: ['dynamic programming', 'greedy', 'recursion', 'graphs'],
     difficulty: 'High',
+    link: '',
   },
   {
     id: 9,
@@ -72,6 +80,7 @@ export const mockProblems: Problem[] = [
     title: 'Longest Common Subsequence',
     tags: ['dynamic programming', 'strings', 'greedy', 'recursion'],
     difficulty: 'High',
+    link: '',
   },
   {
     id: 10,
@@ -81,5 +90,6 @@ export const mockProblems: Problem[] = [
     tags: ['dynamic programming', 'recursion', 'greedy', 'recursion'],
     difficulty: 'Medium',
     isNew: true,
+    link: '',
   },
 ];

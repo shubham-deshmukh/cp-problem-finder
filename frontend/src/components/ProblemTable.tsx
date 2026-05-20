@@ -28,7 +28,7 @@ export function ProblemTable({ problems }: ProblemTableProps) {
                 </div>
               </td>
               <td className="col-title">
-                <a href="#" className="problem-title">
+                <a href={problem.link} target="_blank" rel="noopener noreferrer" className="problem-title">
                   {problem.title}
                 </a>
               </td>
