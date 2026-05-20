@@ -3,3 +3,10 @@ dist/
 build/
 .env
 .DS_Store
+
+# Backend Environment Variables
+backend/.env
+
+# Python Cache
+backend/__pycache__/
+
