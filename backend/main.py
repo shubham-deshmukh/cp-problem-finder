@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+import re
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import meilisearch
@@ -10,6 +11,7 @@ import time
 from dotenv import load_dotenv
 import httpx
 from pydantic import BaseModel, HttpUrl, field_validator, model_validator
+from curl_cffi.requests import AsyncSession
 
 logger = logging.getLogger(__name__)
 
@@ -38,10 +40,10 @@ DUMMY_DATA = [
 ]
 
 PLATFORM_ICONS = {
-    "LeetCode": "◼️",
+    "Leetcode": "◼️",
     "Codeforces": "📊",
-    "AtCoder": "🐜",
-    "CodeChef": "🍳",
+    "Atcoder": "🐜",
+    "Codechef": "🍳",
     "CSES": "🔷"
 }
 
@@ -71,7 +73,8 @@ class ProblemCreate(BaseModel):
     @field_validator('platform')
     @classmethod
     def check_platform(cls, v):
-        valid_platforms = ["LeetCode", "Codeforces", "AtCoder", "CodeChef", "CSES"]
+        valid_platforms = ["LeetCode", "Codeforces", "Atcoder", "Codechef", "CSES"]
+        print(v)
         if v not in valid_platforms:
             raise ValueError(f"Platform must be one of: {', '.join(valid_platforms)}")
         return v
@@ -128,15 +131,82 @@ async def fetch_leetcode_title(url: str) -> str:
     # Fallback to URL parsing if network request fails or question is not found
     return title_slug.replace('-', ' ').title()
 
+async def fetch_codeforces_title(url: str) -> str:
+    try:
+        # Direct HTML scraping bypasses API limitations for new/private/gym contests
+        # Using curl_cffi to impersonate a real browser and bypass Cloudflare's 403 blocks
+        async with AsyncSession(impersonate="chrome120") as client:
+            response = await client.get(url)
+            response.raise_for_status()
+            
+            # Codeforces embeds the title in a specific div: <div class="title">A. Problem Name</div>
+            match = re.search(r'<div class="title">(?:[A-Z0-9]+\.\s*)(.*?)</div>', response.text)
+            if match:
+                return match.group(1).strip()
+    except Exception as e:
+        logger.warning(f"Failed to fetch Codeforces title for {url}: {e}. Falling back to slug parsing.")
+            
+    # Fallback to URL parsing (yielding the problem index like "E") if request fails
+    return url.rstrip('/').split('/')[-1].upper()
+
+async def fetch_codechef_title(url: str) -> str:
+    try:
+        async with AsyncSession(impersonate="chrome120") as client:
+            response = await client.get(url)
+            response.raise_for_status()
+            
+            # CodeChef embeds the title in the HTML <title> tag (e.g., "Problem Name Problem | CodeChef")
+            match = re.search(r'<title>(.*?)</title>', response.text)
+            if match:
+                raw_title = match.group(1)
+                # Clean up the string by splitting at the pipe and removing the word " Problem"
+                return raw_title.split('|')[0].replace(' Problem', '').strip()
+    except Exception as e:
+        logger.warning(f"Failed to fetch CodeChef title for {url}: {e}. Falling back to slug parsing.")
+            
+    return url.rstrip('/').split('/')[-1].replace('-', ' ').title()
+
+async def fetch_cses_title(url: str) -> str:
+    try:
+        async with AsyncSession(impersonate="chrome120") as client:
+            response = await client.get(url)
+            response.raise_for_status()
+            
+            # CSES titles are typically formatted as "CSES - Problem Name"
+            match = re.search(r'<title>CSES - (.*?)</title>', response.text)
+            if match:
+                return match.group(1).strip()
+    except Exception as e:
+        logger.warning(f"Failed to fetch CSES title for {url}: {e}. Falling back to slug parsing.")
+            
+    return url.rstrip('/').split('/')[-1].replace('-', ' ').title()
+
+async def fetch_atcoder_title(url: str) -> str:
+    try:
+        async with AsyncSession(impersonate="chrome120") as client:
+            response = await client.get(url)
+            response.raise_for_status()
+            
+            # AtCoder titles are formatted as "B - Incomplete Shuffle"
+            match = re.search(r'<title>(.*?)</title>', response.text)
+            if match:
+                return match.group(1).strip()
+    except Exception as e:
+        logger.warning(f"Failed to fetch AtCoder title for {url}: {e}. Falling back to slug parsing.")
+            
+    return url.rstrip('/').split('/')[-1].replace('_', ' ').replace('-', ' ').title()
+
 async def fetch_default_title(url: str) -> str:
     """Fallback for static sites or platforms without a dedicated scraper yet."""
     return url.rstrip('/').split('/')[-1].replace('-', ' ').title()
 
 # Map the platform string to the specific asynchronous scraper function
 TITLE_SCRAPERS = {
-    "LeetCode": fetch_leetcode_title,
-    # "Codeforces": fetch_codeforces_title,
-    # "CSES": fetch_cses_title,
+    "Leetcode": fetch_leetcode_title,
+    "Codeforces": fetch_codeforces_title,
+    "Atcoder": fetch_atcoder_title,
+    "Codechef": fetch_codechef_title,
+    "CSES": fetch_cses_title,
 }
 
 # Pydantic model representing the full DB document
@@ -249,7 +319,6 @@ async def add_problem(problem_in: ProblemCreate):
     # Look up the appropriate scraper based on the platform, falling back to the default one
     scraper_func = TITLE_SCRAPERS.get(problem_in.platform, fetch_default_title)
     extracted_title = await scraper_func(link_str)
-
     # Determine the platform icon or use a default one
     platform_icon = PLATFORM_ICONS.get(problem_in.platform, "🌐")
 
