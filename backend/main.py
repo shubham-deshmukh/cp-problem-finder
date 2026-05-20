@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Query
+from fastapi.middleware.cors import CORSMiddleware
 import meilisearch
 from meilisearch.errors import MeilisearchCommunicationError
 from typing import Optional, List
@@ -72,6 +73,15 @@ async def lifespan(app: FastAPI):
 
 # Initialize FastAPI App
 app = FastAPI(title="DSA Search Engine API", lifespan=lifespan)
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"], # Added both localhost and IP variations
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # 4. Define API Endpoints
 @app.get("/")
