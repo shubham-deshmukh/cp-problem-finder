@@ -8,6 +8,7 @@ import logging
 import os
 import time
 from dotenv import load_dotenv
+import httpx
 from pydantic import BaseModel, HttpUrl, field_validator, model_validator
 
 logger = logging.getLogger(__name__)
@@ -88,6 +89,55 @@ class ProblemCreate(BaseModel):
         if expected_domain and expected_domain not in str(self.link):
             raise ValueError(f"URL domain does not match the selected platform. Expected domain: '{expected_domain}'")
         return self
+
+# --- Scraper Strategy Pattern ---
+
+async def fetch_leetcode_title(url: str) -> str:
+    title_slug = url.rstrip('/').split('/')[-1]
+    
+    graphql_query = """
+    query questionTitle($titleSlug: String!) {
+      question(titleSlug: $titleSlug) {
+        title
+      }
+    }
+    """
+    
+    payload = {
+        "query": graphql_query,
+        "variables": {"titleSlug": title_slug}
+    }
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            # A User-Agent header is often required by public APIs to avoid bot-blocking
+            response = await client.post(
+                "https://leetcode.com/graphql", 
+                json=payload,
+                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+            )
+            response.raise_for_status()
+            data = response.json()
+            # Navigate the JSON response to extract the title
+            title = data.get("data", {}).get("question", {}).get("title")
+            if title:
+                return title
+    except Exception as e:
+        logger.warning(f"Failed to fetch LeetCode title for {url}: {e}. Falling back to slug parsing.")
+
+    # Fallback to URL parsing if network request fails or question is not found
+    return title_slug.replace('-', ' ').title()
+
+async def fetch_default_title(url: str) -> str:
+    """Fallback for static sites or platforms without a dedicated scraper yet."""
+    return url.rstrip('/').split('/')[-1].replace('-', ' ').title()
+
+# Map the platform string to the specific asynchronous scraper function
+TITLE_SCRAPERS = {
+    "LeetCode": fetch_leetcode_title,
+    # "Codeforces": fetch_codeforces_title,
+    # "CSES": fetch_cses_title,
+}
 
 # Pydantic model representing the full DB document
 class Problem(BaseModel):
@@ -190,14 +240,15 @@ def search_problems(
     return search_results.get("hits", [])
 
 @app.post("/problems", status_code=201, response_model=Problem)
-def add_problem(problem_in: ProblemCreate):
+async def add_problem(problem_in: ProblemCreate):
     """
     Add a new DSA problem to the search index.
     """
-    # Extract title from the link (e.g., .../longest-common-subsequence/ -> Longest Common Subsequence)
     link_str = str(problem_in.link)
-    raw_slug = link_str.rstrip('/').split('/')[-1]
-    extracted_title = raw_slug.replace('-', ' ').title()
+    
+    # Look up the appropriate scraper based on the platform, falling back to the default one
+    scraper_func = TITLE_SCRAPERS.get(problem_in.platform, fetch_default_title)
+    extracted_title = await scraper_func(link_str)
 
     # Determine the platform icon or use a default one
     platform_icon = PLATFORM_ICONS.get(problem_in.platform, "🌐")
