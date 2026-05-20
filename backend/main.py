@@ -1,11 +1,12 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import meilisearch
 from meilisearch.errors import MeilisearchCommunicationError
 from typing import Optional, List
 import logging
 import os
+import time
 from dotenv import load_dotenv
 from pydantic import BaseModel
 
@@ -35,7 +36,22 @@ DUMMY_DATA = [
     {"id": 10, "platform": "CSES", "platformIcon": "🔷", "title": "leetcode.com/problems/...65561/...", "link": "https://cses.fi/problemset/task/5678", "tags": ["dynamic programming", "recursion", "greedy", "recursion"], "difficulty": "Medium", "isNew": True},
 ]
 
-# Pydantic model for request validation
+PLATFORM_ICONS = {
+    "LeetCode": "◼️",
+    "Codeforces": "📊",
+    "AtCoder": "🐜",
+    "CodeChef": "🍳",
+    "CSES": "🔷"
+}
+
+# Pydantic model for incoming frontend request
+class ProblemCreate(BaseModel):
+    link: str
+    platform: str
+    difficulty: str
+    tags: List[str]
+
+# Pydantic model representing the full DB document
 class Problem(BaseModel):
     id: int
     platform: str
@@ -88,7 +104,7 @@ app.add_middleware(
 def read_root():
     return {"message": "DSA Search Engine API is running. Visit /docs for Swagger UI."}
 
-@app.get("/search")
+@app.get("/search", response_model=List[Problem])
 def search_problems(
     q: str = Query("", description="The main search query string"),
     limit: int = Query(20, description="Max results to return"),
@@ -125,18 +141,39 @@ def search_problems(
     index = client.index(INDEX_NAME)
     search_results = index.search(q, search_params)
     
-    return search_results
+    # Return only the 'hits' to prevent sending Meilisearch metadata to the client
+    return search_results.get("hits", [])
 
-@app.post("/problems", status_code=201)
-def add_problem(problem: Problem):
+@app.post("/problems", status_code=201, response_model=Problem)
+def add_problem(problem_in: ProblemCreate):
     """
     Add a new DSA problem to the search index.
     """
+    # Extract title from the link (e.g., .../longest-common-subsequence/ -> Longest Common Subsequence)
+    raw_slug = problem_in.link.rstrip('/').split('/')[-1]
+    extracted_title = raw_slug.replace('-', ' ').title()
+
+    # Determine the platform icon or use a default one
+    platform_icon = PLATFORM_ICONS.get(problem_in.platform, "🌐")
+
+    # Construct the full problem dictionary with an auto-generated timestamp ID
+    problem_doc = {
+        "id": int(time.time()),
+        "platform": problem_in.platform,
+        "platformIcon": platform_icon,
+        "title": extracted_title,
+        "link": problem_in.link,
+        "tags": problem_in.tags,
+        "difficulty": problem_in.difficulty,
+        "isNew": True
+    }
+
     try:
         index = client.index(INDEX_NAME)
-        # Add document to Meilisearch (updates if id already exists)
-        response = index.add_documents([problem.dict()])
-        return {"message": "Problem added successfully", "task_uid": response.task_uid}
+        # Add document to Meilisearch
+        response = index.add_documents([problem_doc])
+        # Return only the created problem document for exact consistency with the search API
+        return problem_doc
     except MeilisearchCommunicationError:
         logger.error("Failed to connect to Meilisearch while adding a problem.")
-        return {"error": "Database connection failed"}
+        raise HTTPException(status_code=500, detail="Database connection failed")
