@@ -16,23 +16,34 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchProblems = async () => {
+    const controller = new AbortController();
+    const { signal } = controller;
+
+    const handler = setTimeout(async () => {
+      setIsLoading(true);
       try {
-        const response = await fetch('http://127.0.0.1:8000/search?limit=8&offset=0');
+        const encodedQuery = encodeURIComponent(searchValue);
+        const response = await fetch(`http://127.0.0.1:8000/search?q=${encodedQuery}&limit=8&offset=0`, { signal });
         if (!response.ok) throw new Error('Failed to fetch data');
         const data = await response.json();
-        
-        // The search endpoint returns an object with a 'hits' property
         setProblems(data.hits || []);
       } catch (error) {
-        console.error('Error fetching problems:', error);
+        if ((error as Error).name !== 'AbortError') {
+          console.error('Error fetching problems:', error);
+          setProblems([]); // Clear results on error
+        }
       } finally {
-        setIsLoading(false);
+        if (!signal.aborted) {
+          setIsLoading(false);
+        }
       }
-    };
+    }, 300); // 300ms debounce delay
 
-    fetchProblems();
-  }, []);
+    return () => {
+      clearTimeout(handler);
+      controller.abort();
+    };
+  }, [searchValue]);
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
@@ -43,15 +54,6 @@ function App() {
     }
   };
 
-  const filteredProblems = problems.filter((problem) => {
-    if (!searchValue) return true;
-    const search = searchValue.toLowerCase();
-    return (
-      problem.title.toLowerCase().includes(search) ||
-      problem.tags.some(tag => tag.toLowerCase().includes(search))
-    );
-  });
-
   return (
     <div className={`app ${isDarkMode ? 'dark-mode' : ''}`}>
       <Header onThemeToggle={toggleTheme} />
@@ -60,7 +62,7 @@ function App() {
         {isLoading ? (
           <div style={{ textAlign: 'center', padding: '2rem' }}>Loading problems...</div>
         ) : (
-          <ProblemTable problems={filteredProblems} />
+          <ProblemTable problems={problems} />
         )}
       </div>
       <FAB onClick={() => setIsAddProblemModalOpen(true)} />
