@@ -11,7 +11,7 @@ interface AddProblemModalProps {
 
 const AddProblemModal: React.FC<AddProblemModalProps> = ({ isOpen, isLoading = false, onClose, onSubmit }) => {
   const [link, setLink] = useState('');
-  const [platform, setPlatform] = useState('LeetCode');
+  const [platform, setPlatform] = useState('Leetcode');
   const [difficulty, setDifficulty] = useState<DifficultyLevel>('Easy');
   const [tags, setTags] = useState<string[]>([]);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
@@ -21,7 +21,7 @@ const AddProblemModal: React.FC<AddProblemModalProps> = ({ isOpen, isLoading = f
   useEffect(() => {
     if (isOpen) {
       setLink('');
-      setPlatform('LeetCode');
+      setPlatform('Leetcode');
       setDifficulty('Easy');
       setTags([]);
 

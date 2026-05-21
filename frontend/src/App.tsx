@@ -6,6 +6,7 @@ import { FAB } from './components/FAB';
 import { ProblemTable } from './components/ProblemTable';
 import AddProblemModal from './components/AddProblemModal';
 import { type Problem, type ProblemData } from './types';
+import toast, { Toaster } from 'react-hot-toast';
 
 function App() {
   const [searchValue, setSearchValue] = useState('');
@@ -89,9 +90,10 @@ function App() {
       // Add the new problem to the top of the list
       setProblems(prevProblems => [newProblem, ...prevProblems]);
       setIsAddProblemModalOpen(false);
+      toast.success('Problem added successfully!');
     } catch (error) {
       console.error('Error adding problem:', error);
-      alert((error as Error).message); // Show a simple alert on failure
+      toast.error((error as Error).message); 
     } finally {
       setIsAnalyzing(false);
     }
@@ -99,6 +101,13 @@ function App() {
 
   return (
     <div className={`app ${isDarkMode ? 'dark-mode' : ''}`}>
+      <Toaster 
+        position="bottom-right" 
+        toastOptions={{
+          // Automatically adjust toast colors based on your current theme
+          style: { background: isDarkMode ? '#333' : '#fff', color: isDarkMode ? '#fff' : '#333' }
+        }} 
+      />
       <Header onThemeToggle={toggleTheme} />
       <div className="main-content">
         <SearchBar searchValue={searchValue} onSearchChange={setSearchValue} />
