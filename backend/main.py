@@ -29,16 +29,16 @@ client = meilisearch.Client(MEILI_URL, MEILI_MASTER_KEY)
 
 # 2. Convert JS dummy data into Python dictionaries
 DUMMY_DATA = [
-    {"id": 1, "platform": "LeetCode", "platformIcon": "◼️", "title": "Longest Common Subsequence", "link": "https://leetcode.com/problems/longest-common-subsequence/", "tags": ["dynamic programming", "strings", "greedy", "recursion"], "difficulty": "High"},
+    {"id": 1, "platform": "Leetcode", "platformIcon": "◼️", "title": "Longest Common Subsequence", "link": "https://leetcode.com/problems/longest-common-subsequence/", "tags": ["dynamic programming", "strings", "greedy", "recursion"], "difficulty": "High"},
     {"id": 2, "platform": "Codeforces", "platformIcon": "📊", "title": "Edit Distance", "link": "https://codeforces.com/problemset/problem/72/E", "tags": ["dynamic programming", "graphs", "graphs"], "difficulty": "High"},
-    {"id": 3, "platform": "AtCoder", "platformIcon": "🐜", "title": "Traveling Salesman", "link": "https://atcoder.jp/contests/abc/tasks/abc_tsp", "tags": ["dynamic programming", "strings", "greedy"], "difficulty": "Medium"},
-    {"id": 4, "platform": "CodeChef", "platformIcon": "🍳", "title": "Longest Connection", "link": "https://www.codechef.com/problems/LONGC", "tags": ["dynamic programming", "graphs", "greedy"], "difficulty": "High"},
-    {"id": 5, "platform": "CodeChef", "platformIcon": "🍳", "title": "Traveling Pattern", "link": "https://www.codechef.com/problems/TRVPAT", "tags": ["dynamic programming", "greedy", "recursion", "recursion"], "difficulty": "High"},
+    {"id": 3, "platform": "Atcoder", "platformIcon": "🐜", "title": "Traveling Salesman", "link": "https://atcoder.jp/contests/abc/tasks/abc_tsp", "tags": ["dynamic programming", "strings", "greedy"], "difficulty": "Medium"},
+    {"id": 4, "platform": "Codechef", "platformIcon": "🍳", "title": "Longest Connection", "link": "https://www.codechef.com/problems/LONGC", "tags": ["dynamic programming", "graphs", "greedy"], "difficulty": "High"},
+    {"id": 5, "platform": "Codechef", "platformIcon": "🍳", "title": "Traveling Pattern", "link": "https://www.codechef.com/problems/TRVPAT", "tags": ["dynamic programming", "greedy", "recursion", "recursion"], "difficulty": "High"},
     {"id": 6, "platform": "Codeforces", "platformIcon": "📊", "title": "Longest Subsequence", "link": "https://codeforces.com/problemset/problem/12/LS", "tags": ["dynamic programming", "greedy", "recursion", "graphs"], "difficulty": "High"},
-    {"id": 7, "platform": "CodeChef", "platformIcon": "🍳", "title": "Monestriatic Function", "link": "https://www.codechef.com/problems/MONFUNC", "tags": ["dynamic programming", "strings", "greedy"], "difficulty": "High"},
-    {"id": 8, "platform": "CodeChef", "platformIcon": "🍳", "title": "Traveling Salesman", "link": "https://www.codechef.com/problems/TSP", "tags": ["dynamic programming", "greedy", "recursion", "graphs"], "difficulty": "High"},
+    {"id": 7, "platform": "Codechef", "platformIcon": "🍳", "title": "Monestriatic Function", "link": "https://www.codechef.com/problems/MONFUNC", "tags": ["dynamic programming", "strings", "greedy"], "difficulty": "High"},
+    {"id": 8, "platform": "Codechef", "platformIcon": "🍳", "title": "Traveling Salesman", "link": "https://www.codechef.com/problems/TSP", "tags": ["dynamic programming", "greedy", "recursion", "graphs"], "difficulty": "High"},
     {"id": 9, "platform": "CSES", "platformIcon": "🔷", "title": "Longest Common Subsequence", "link": "https://cses.fi/problemset/task/1234", "tags": ["dynamic programming", "strings", "greedy", "recursion"], "difficulty": "High"},
-    {"id": 10, "platform": "CSES", "platformIcon": "🔷", "title": "leetcode.com/problems/...65561/...", "link": "https://cses.fi/problemset/task/5678", "tags": ["dynamic programming", "recursion", "greedy", "recursion"], "difficulty": "Medium", "isNew": True},
+    {"id": 10, "platform": "CSES", "platformIcon": "🔷", "title": "Array Description", "link": "https://cses.fi/problemset/task/1746", "tags": ["dynamic programming", "recursion", "greedy", "recursion"], "difficulty": "Medium", "isNew": True},
 ]
 
 PLATFORM_ICONS = {
@@ -75,7 +75,7 @@ class ProblemCreate(BaseModel):
     @field_validator('platform')
     @classmethod
     def check_platform(cls, v):
-        valid_platforms = ["LeetCode", "Codeforces", "Atcoder", "Codechef", "CSES"]
+        valid_platforms = ["Leetcode", "Codeforces", "Atcoder", "Codechef", "CSES"]
         print(v)
         if v not in valid_platforms:
             raise ValueError(f"Platform must be one of: {', '.join(valid_platforms)}")
@@ -84,10 +84,10 @@ class ProblemCreate(BaseModel):
     @model_validator(mode='after')
     def check_domain_matches_platform(self):
         platform_domains = {
-            "LeetCode": "leetcode.com",
+            "Leetcode": "leetcode.com",
             "Codeforces": "codeforces.com",
-            "AtCoder": "atcoder.jp",
-            "CodeChef": "codechef.com",
+            "Atcoder": "atcoder.jp",
+            "Codechef": "codechef.com",
             "CSES": "cses.fi"
         }
         expected_domain = platform_domains.get(self.platform)
@@ -128,7 +128,7 @@ async def fetch_leetcode_title(url: str) -> str:
             if title:
                 return html.unescape(title)
     except Exception as e:
-        logger.warning(f"Failed to fetch LeetCode title for {url}: {e}. Falling back to slug parsing.")
+        logger.warning(f"Failed to fetch Leetcode title for {url}: {e}. Falling back to slug parsing.")
 
     # Fallback to URL parsing if network request fails or question is not found
     decoded_slug = urllib.parse.unquote(title_slug)
@@ -245,7 +245,7 @@ async def lifespan(app: FastAPI):
         index.update_searchable_attributes(["title", "tags", "platform"])
         
         # Filterable attributes must be explicitly defined in Meilisearch to use them in WHERE-like clauses
-        index.update_filterable_attributes(["platform", "difficulty", "tags", "isNew"])
+        index.update_filterable_attributes(["platform", "difficulty", "tags", "isNew", "link"])
         logger.info("Successfully connected to Meilisearch and initialized the index.")
     except MeilisearchCommunicationError:
         logger.error(f"Failed to connect to Meilisearch at {MEILI_URL}. Please ensure the server is running.")
@@ -283,7 +283,7 @@ def search_problems(
     q: str = Query("", description="The main search query string"),
     limit: int = Query(20, description="Max results to return"),
     offset: int = Query(0, description="Number of results to skip"),
-    platform: Optional[str] = Query(None, description="Filter by platform (e.g., LeetCode)"),
+    platform: Optional[str] = Query(None, description="Filter by platform (e.g., Leetcode)"),
     difficulty: Optional[str] = Query(None, description="Filter by difficulty (e.g., High)"),
     tag: Optional[str] = Query(None, description="Filter by a specific tag")
 ):
@@ -325,6 +325,16 @@ async def add_problem(problem_in: ProblemCreate):
     """
     link_str = str(problem_in.link)
     
+    try:
+        index = client.index(INDEX_NAME)
+        # Check if the problem already exists by filtering for the exact link
+        existing_problems = index.search("", {"filter": [f"link = '{link_str}'"], "limit": 1})
+        if existing_problems.get("hits"):
+            raise HTTPException(status_code=400, detail="A problem with this link already exists.")
+    except MeilisearchCommunicationError:
+        logger.error("Failed to connect to Meilisearch while validating existing problem.")
+        raise HTTPException(status_code=500, detail="Database connection failed")
+
     # Look up the appropriate scraper based on the platform, falling back to the default one
     scraper_func = TITLE_SCRAPERS.get(problem_in.platform, fetch_default_title)
     extracted_title = await scraper_func(link_str)
