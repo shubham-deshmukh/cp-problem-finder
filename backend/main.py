@@ -422,3 +422,22 @@ async def update_problem(problem_id: int, problem_in: ProblemUpdate):
     except MeilisearchCommunicationError:
         logger.error("Failed to connect to Meilisearch while updating a problem.")
         raise HTTPException(status_code=500, detail="Database connection failed")
+
+@app.delete("/problems/{problem_id}", status_code=204)
+def delete_problem(problem_id: int):
+    """
+    Delete a DSA problem from the search index.
+    """
+    try:
+        index = client.index(INDEX_NAME)
+        
+        # Verify the problem exists before attempting to delete
+        index.get_document(problem_id)
+        
+        # Queue the deletion task in Meilisearch
+        index.delete_document(problem_id)
+    except MeilisearchApiError:
+        raise HTTPException(status_code=404, detail="Problem not found")
+    except MeilisearchCommunicationError:
+        logger.error(f"Failed to connect to Meilisearch while deleting problem {problem_id}.")
+        raise HTTPException(status_code=500, detail="Database connection failed")
