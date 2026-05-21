@@ -138,6 +138,37 @@ function App() {
     }
   };
 
+  // Handle deleting a problem
+  const handleDeleteProblem = async (id: number) => {
+    if (!window.confirm('Are you sure you want to delete this problem?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/problems/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        let errorMessage = 'Failed to delete problem. Please try again.';
+        try {
+          const errorData = await response.json();
+          if (errorData.detail) {
+            errorMessage = Array.isArray(errorData.detail) ? errorData.detail[0].msg : errorData.detail;
+          }
+        } catch (e) { /* Fall back to default message */ }
+        throw new Error(errorMessage);
+      }
+
+      // Remove the problem from local state
+      setProblems(prevProblems => prevProblems.filter(p => p.id !== id));
+      toast.success('Problem deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting problem:', error);
+      toast.error((error as Error).message); 
+    }
+  };
+
   return (
     <div className={`app ${isDarkMode ? 'dark-mode' : ''}`}>
       <Toaster 
@@ -153,7 +184,7 @@ function App() {
         {isLoading ? (
           <div style={{ textAlign: 'center', padding: '2rem' }}>Loading problems...</div>
         ) : (
-          <ProblemTable problems={problems} onEdit={setEditingProblem} />
+          <ProblemTable problems={problems} onEdit={setEditingProblem} onDelete={handleDeleteProblem} />
         )}
       </div>
       <FAB onClick={() => setIsAddProblemModalOpen(true)} />

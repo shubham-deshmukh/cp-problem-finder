@@ -5,9 +5,10 @@ import { type Problem } from '../types';
 interface ProblemTableProps {
   problems: Problem[];
   onEdit?: (problem: Problem) => void;
+  onDelete?: (id: number) => void;
 }
 
-export function ProblemTable({ problems, onEdit }: ProblemTableProps) {
+export function ProblemTable({ problems, onEdit, onDelete }: ProblemTableProps) {
   return (
     <div className="table-wrapper">
       <table className="problems-table">
@@ -17,7 +18,7 @@ export function ProblemTable({ problems, onEdit }: ProblemTableProps) {
             <th className="col-title">Title</th>
             <th className="col-tags">Tags</th>
             <th className="col-difficulty">Difficulty</th>
-            <th className="col-actions" style={{ width: '60px', textAlign: 'center' }}>Actions</th>
+            <th className="col-actions" style={{ width: '80px', textAlign: 'center' }}>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -58,14 +59,23 @@ export function ProblemTable({ problems, onEdit }: ProblemTableProps) {
                   {problem.difficulty}
                 </span>
               </td>
-              <td className="col-actions" style={{ textAlign: 'center' }}>
-                <button 
-                  onClick={() => onEdit?.(problem)}
-                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.2rem', padding: '4px' }}
-                  title="Edit problem"
-                >
-                  ✏️
-                </button>
+              <td className="col-actions">
+                <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
+                  <button 
+                    onClick={() => onEdit?.(problem)}
+                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.2rem', padding: '4px' }}
+                    title="Edit problem"
+                  >
+                    ✏️
+                  </button>
+                  <button 
+                    onClick={() => onDelete?.(problem.id)}
+                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.2rem', padding: '4px' }}
+                    title="Delete problem"
+                  >
+                    🗑️
+                  </button>
+                </div>
               </td>
             </tr>
           ))}
