@@ -23,7 +23,16 @@ export function ProblemTable({ problems }: ProblemTableProps) {
             <tr key={problem.id} className="problem-row">
               <td className="col-platform">
                 <div className="platform-badge">
-                  <span className="platform-icon">{problem.platformIcon}</span>
+                  <img 
+                    src={`/icons/${problem.platform.toLowerCase()}.png`} 
+                    alt={`${problem.platform} logo`} 
+                    className="platform-icon"
+                    style={{ width: '20px', height: '20px', borderRadius: '4px', objectFit: 'contain' }}
+                    onError={(e) => {
+                      e.currentTarget.src = '/icons/default.png';
+                      e.currentTarget.onerror = null; // Prevents infinite loops if the fallback image is also missing
+                    }}
+                  />
                   <span className="platform-name">{problem.platform}</span>
                 </div>
               </td>
