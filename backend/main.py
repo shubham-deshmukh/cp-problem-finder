@@ -5,7 +5,7 @@ import urllib.parse
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import meilisearch
-from meilisearch.errors import MeilisearchCommunicationError
+from meilisearch.errors import MeilisearchCommunicationError, MeilisearchApiError
 from typing import Optional, List
 import logging
 import os
@@ -94,6 +94,24 @@ class ProblemCreate(BaseModel):
         if expected_domain and expected_domain not in str(self.link):
             raise ValueError(f"URL domain does not match the selected platform. Expected domain: '{expected_domain}'")
         return self
+
+# Pydantic model for partial problem updates
+class ProblemUpdate(BaseModel):
+    title: Optional[str] = None
+    link: Optional[HttpUrl] = None
+    platform: Optional[str] = None
+    difficulty: Optional[str] = None
+    tags: Optional[List[str]] = None
+
+    @field_validator('platform')
+    @classmethod
+    def check_platform(cls, v):
+        if v is None:
+            return v
+        valid_platforms = ["Leetcode", "Codeforces", "Atcoder", "Codechef", "CSES"]
+        if v not in valid_platforms:
+            raise ValueError(f"Platform must be one of: {', '.join(valid_platforms)}")
+        return v
 
 # --- Scraper Strategy Pattern ---
 
@@ -361,4 +379,46 @@ async def add_problem(problem_in: ProblemCreate):
         return problem_doc
     except MeilisearchCommunicationError:
         logger.error("Failed to connect to Meilisearch while adding a problem.")
+        raise HTTPException(status_code=500, detail="Database connection failed")
+
+@app.put("/problems/{problem_id}", response_model=Problem)
+async def update_problem(problem_id: int, problem_in: ProblemUpdate):
+    """
+    Update an existing DSA problem.
+    """
+    try:
+        index = client.index(INDEX_NAME)
+        doc_obj = index.get_document(problem_id)
+        # Meilisearch returns a Document object; convert it to a dictionary
+        existing = doc_obj.__dict__ if hasattr(doc_obj, "__dict__") else doc_obj
+    except MeilisearchApiError:
+        raise HTTPException(status_code=404, detail="Problem not found")
+    except MeilisearchCommunicationError:
+        raise HTTPException(status_code=500, detail="Database connection failed")
+        
+    update_data = problem_in.model_dump(exclude_unset=True)
+    if not update_data:
+        return existing
+
+    if "link" in update_data:
+        if str(update_data["link"]) != existing.get("link"):
+            raise HTTPException(status_code=400, detail="Updating the problem link is not allowed.")
+        update_data["link"] = str(update_data["link"])
+            
+    if "platform" in update_data:
+        if update_data["platform"] != existing.get("platform"):
+            raise HTTPException(status_code=400, detail="Updating the problem platform is not allowed.")
+        
+    update_data["id"] = problem_id
+    
+    try:
+        index.update_documents([update_data])
+        # Return the merged document simulating Meilisearch's partial update
+        updated_doc = {**existing, **update_data}
+        return updated_doc
+    except MeilisearchApiError as e:
+        logger.error(f"Meilisearch API error while updating problem {problem_id}: {e}")
+        raise HTTPException(status_code=400, detail="Failed to update problem in database")
+    except MeilisearchCommunicationError:
+        logger.error("Failed to connect to Meilisearch while updating a problem.")
         raise HTTPException(status_code=500, detail="Database connection failed")
