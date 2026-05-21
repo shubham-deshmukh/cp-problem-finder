@@ -1,5 +1,7 @@
 from contextlib import asynccontextmanager
 import re
+import html
+import urllib.parse
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import meilisearch
@@ -124,12 +126,13 @@ async def fetch_leetcode_title(url: str) -> str:
             # Navigate the JSON response to extract the title
             title = data.get("data", {}).get("question", {}).get("title")
             if title:
-                return title
+                return html.unescape(title)
     except Exception as e:
         logger.warning(f"Failed to fetch LeetCode title for {url}: {e}. Falling back to slug parsing.")
 
     # Fallback to URL parsing if network request fails or question is not found
-    return title_slug.replace('-', ' ').title()
+    decoded_slug = urllib.parse.unquote(title_slug)
+    return decoded_slug.replace('-', ' ').title()
 
 async def fetch_codeforces_title(url: str) -> str:
     try:
@@ -142,12 +145,13 @@ async def fetch_codeforces_title(url: str) -> str:
             # Codeforces embeds the title in a specific div: <div class="title">A. Problem Name</div>
             match = re.search(r'<div class="title">(?:[A-Z0-9]+\.\s*)(.*?)</div>', response.text)
             if match:
-                return match.group(1).strip()
+                return html.unescape(match.group(1).strip())
     except Exception as e:
         logger.warning(f"Failed to fetch Codeforces title for {url}: {e}. Falling back to slug parsing.")
             
     # Fallback to URL parsing (yielding the problem index like "E") if request fails
-    return url.rstrip('/').split('/')[-1].upper()
+    decoded_slug = urllib.parse.unquote(url.rstrip('/').split('/')[-1])
+    return decoded_slug.upper()
 
 async def fetch_codechef_title(url: str) -> str:
     try:
@@ -160,11 +164,13 @@ async def fetch_codechef_title(url: str) -> str:
             if match:
                 raw_title = match.group(1)
                 # Clean up the string by splitting at the pipe and removing the word " Problem"
-                return raw_title.split('|')[0].replace(' Problem', '').strip()
+                title = raw_title.split('|')[0].replace(' Problem', '').strip()
+                return html.unescape(title)
     except Exception as e:
         logger.warning(f"Failed to fetch CodeChef title for {url}: {e}. Falling back to slug parsing.")
             
-    return url.rstrip('/').split('/')[-1].replace('-', ' ').title()
+    decoded_slug = urllib.parse.unquote(url.rstrip('/').split('/')[-1])
+    return decoded_slug.replace('-', ' ').title()
 
 async def fetch_cses_title(url: str) -> str:
     try:
@@ -175,11 +181,12 @@ async def fetch_cses_title(url: str) -> str:
             # CSES titles are typically formatted as "CSES - Problem Name"
             match = re.search(r'<title>CSES - (.*?)</title>', response.text)
             if match:
-                return match.group(1).strip()
+                return html.unescape(match.group(1).strip())
     except Exception as e:
         logger.warning(f"Failed to fetch CSES title for {url}: {e}. Falling back to slug parsing.")
             
-    return url.rstrip('/').split('/')[-1].replace('-', ' ').title()
+    decoded_slug = urllib.parse.unquote(url.rstrip('/').split('/')[-1])
+    return decoded_slug.replace('-', ' ').title()
 
 async def fetch_atcoder_title(url: str) -> str:
     try:
@@ -190,15 +197,17 @@ async def fetch_atcoder_title(url: str) -> str:
             # AtCoder titles are formatted as "B - Incomplete Shuffle"
             match = re.search(r'<title>(.*?)</title>', response.text)
             if match:
-                return match.group(1).strip()
+                return html.unescape(match.group(1).strip())
     except Exception as e:
         logger.warning(f"Failed to fetch AtCoder title for {url}: {e}. Falling back to slug parsing.")
             
-    return url.rstrip('/').split('/')[-1].replace('_', ' ').replace('-', ' ').title()
+    decoded_slug = urllib.parse.unquote(url.rstrip('/').split('/')[-1])
+    return decoded_slug.replace('_', ' ').replace('-', ' ').title()
 
 async def fetch_default_title(url: str) -> str:
     """Fallback for static sites or platforms without a dedicated scraper yet."""
-    return url.rstrip('/').split('/')[-1].replace('-', ' ').title()
+    decoded_slug = urllib.parse.unquote(url.rstrip('/').split('/')[-1])
+    return decoded_slug.replace('-', ' ').title()
 
 # Map the platform string to the specific asynchronous scraper function
 TITLE_SCRAPERS = {
