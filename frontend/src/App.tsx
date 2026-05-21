@@ -6,6 +6,7 @@ import { FAB } from './components/FAB';
 import { ProblemTable } from './components/ProblemTable';
 import AddProblemModal from './components/AddProblemModal';
 import { type Problem, type ProblemData } from './types';
+import EditProblemModal from './components/EditProblemModal';
 import toast, { Toaster } from 'react-hot-toast';
 
 function App() {
@@ -13,6 +14,8 @@ function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isAddProblemModalOpen, setIsAddProblemModalOpen] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [editingProblem, setEditingProblem] = useState<Problem | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [problems, setProblems] = useState<Problem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -99,6 +102,42 @@ function App() {
     }
   };
 
+  // Handle updating an existing problem
+  const handleUpdateProblem = async (id: number, updatedData: any) => {
+    setIsUpdating(true);
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/problems/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedData),
+      });
+
+      if (!response.ok) {
+        let errorMessage = 'Failed to update problem. Please try again.';
+        try {
+          const errorData = await response.json();
+          if (errorData.detail) {
+            errorMessage = Array.isArray(errorData.detail) ? errorData.detail[0].msg : errorData.detail;
+          }
+        } catch (e) { /* Fall back to default message */ }
+        throw new Error(errorMessage);
+      }
+
+      const updatedProblem: Problem = await response.json();
+      // Update the problem in local state
+      setProblems(prevProblems => prevProblems.map(p => p.id === id ? updatedProblem : p));
+      setEditingProblem(null);
+      toast.success('Problem updated successfully!');
+    } catch (error) {
+      console.error('Error updating problem:', error);
+      toast.error((error as Error).message); 
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   return (
     <div className={`app ${isDarkMode ? 'dark-mode' : ''}`}>
       <Toaster 
@@ -114,7 +153,7 @@ function App() {
         {isLoading ? (
           <div style={{ textAlign: 'center', padding: '2rem' }}>Loading problems...</div>
         ) : (
-          <ProblemTable problems={problems} />
+          <ProblemTable problems={problems} onEdit={setEditingProblem} />
         )}
       </div>
       <FAB onClick={() => setIsAddProblemModalOpen(true)} />
@@ -123,6 +162,13 @@ function App() {
         isLoading={isAnalyzing}
         onClose={() => !isAnalyzing && setIsAddProblemModalOpen(false)}
         onSubmit={handleAddProblem}
+      />
+      <EditProblemModal
+        isOpen={!!editingProblem}
+        problem={editingProblem}
+        isLoading={isUpdating}
+        onClose={() => !isUpdating && setEditingProblem(null)}
+        onSubmit={handleUpdateProblem}
       />
     </div>
   );

@@ -4,9 +4,10 @@ import { type Problem } from '../types';
 
 interface ProblemTableProps {
   problems: Problem[];
+  onEdit?: (problem: Problem) => void;
 }
 
-export function ProblemTable({ problems }: ProblemTableProps) {
+export function ProblemTable({ problems, onEdit }: ProblemTableProps) {
   return (
     <div className="table-wrapper">
       <table className="problems-table">
@@ -16,6 +17,7 @@ export function ProblemTable({ problems }: ProblemTableProps) {
             <th className="col-title">Title</th>
             <th className="col-tags">Tags</th>
             <th className="col-difficulty">Difficulty</th>
+            <th className="col-actions" style={{ width: '60px', textAlign: 'center' }}>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -55,6 +57,15 @@ export function ProblemTable({ problems }: ProblemTableProps) {
                 <span className={`difficulty ${problem.difficulty.toLowerCase()}`}>
                   {problem.difficulty}
                 </span>
+              </td>
+              <td className="col-actions" style={{ textAlign: 'center' }}>
+                <button 
+                  onClick={() => onEdit?.(problem)}
+                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.2rem', padding: '4px' }}
+                  title="Edit problem"
+                >
+                  ✏️
+                </button>
               </td>
             </tr>
           ))}
