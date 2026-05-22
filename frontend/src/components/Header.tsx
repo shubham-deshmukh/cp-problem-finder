@@ -15,10 +15,6 @@ export function Header({ onThemeToggle }: HeaderProps) {
       </div>
 
       <div className="header-right">
-        <button className="icon-button notification-button" title="Notifications">
-          🔔
-        </button>
-        
         <div className="theme-toggle">
           <button 
             className="icon-button theme-button sun-button" 

@@ -39,11 +39,9 @@ A fast and intuitive search engine frontend for Competitive Programming (CP) and
 
 ## 📝 ToDo / Future Improvements
 
-* **Backend Integration:** Replace the current `mockProblems` static data with real REST/GraphQL API calls.
-* **Add Problem Feature:** Connect the Floating Action Button (FAB) to a modal or form allowing users to submit new problems to the database.
 * **Advanced Filtering:** Introduce dedicated dropdowns to filter problems specifically by Platform (e.g., LeetCode, Codeforces) and Difficulty (Easy, Medium, Hard).
 * **Pagination & Sorting:** Implement pagination or infinite scrolling for the problem table, along with column sorting.
 * **User Authentication:** Add login/registration to support personalized problem lists, favorites, and user profiles.
-* **Notifications:** Implement a functional notification dropdown for the bell icon in the header.
+
 * **Global State Management:** Integrate Redux, Zustand, or React Context to manage complex states as the app grows.
 * **Auto-suggestions:** Add intelligent auto-complete/suggestions to the search bar based on available tags in the database.
