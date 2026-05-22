@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import styles from './App.module.css';
 import { Header } from './components/Header';
 import { SearchBar } from './components/SearchBar';
@@ -13,13 +14,13 @@ import { LoginPage } from './components/Login';
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [searchValue, setSearchValue] = useState('');
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [debouncedSearchValue, setDebouncedSearchValue] = useState('');
+  const [isDarkMode, setIsDarkMode] = useState(true);
   const [isAddProblemModalOpen, setIsAddProblemModalOpen] = useState(false);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [editingProblem, setEditingProblem] = useState<Problem | null>(null);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [problems, setProblems] = useState<Problem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+
+  // Access the QueryClient to invalidate cache after mutations
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     // Check if user is already authenticated (e.g., from localStorage or session)
@@ -29,35 +30,25 @@ function App() {
     }
   }, []);
 
+  // Debounce search input
   useEffect(() => {
-    const controller = new AbortController();
-    const { signal } = controller;
-
-    const handler = setTimeout(async () => {
-      setIsLoading(true);
-      try {
-        const encodedQuery = encodeURIComponent(searchValue);
-        const response = await fetch(`http://127.0.0.1:8000/search?q=${encodedQuery}&limit=8&offset=0`, { signal });
-        if (!response.ok) throw new Error('Failed to fetch data');
-        const data = await response.json();
-        setProblems(data || []);
-      } catch (error) {
-        if ((error as Error).name !== 'AbortError') {
-          console.error('Error fetching problems:', error);
-          setProblems([]); // Clear results on error
-        }
-      } finally {
-        if (!signal.aborted) {
-          setIsLoading(false);
-        }
-      }
-    }, 300); // 300ms debounce delay
-
-    return () => {
-      clearTimeout(handler);
-      controller.abort();
-    };
+    const handler = setTimeout(() => {
+      setDebouncedSearchValue(searchValue);
+    }, 300);
+    return () => clearTimeout(handler);
   }, [searchValue]);
+
+  // Fetch problems automatically based on query parameters
+  const { data: problems = [], isLoading } = useQuery({
+    queryKey: ['problems', debouncedSearchValue],
+    queryFn: async ({ signal }) => {
+      const encodedQuery = encodeURIComponent(debouncedSearchValue);
+      const response = await fetch(`http://127.0.0.1:8000/search?q=${encodedQuery}&limit=8&offset=0`, { signal });
+      if (!response.ok) throw new Error('Failed to fetch data');
+      const data = await response.json();
+      return data || [];
+    }
+  });
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
@@ -68,115 +59,121 @@ function App() {
     }
   };
 
-  const handleAddProblem = async (problemData: ProblemData) => {
-    setIsAnalyzing(true);
-    try {
-      // Note: Update this URL to match your actual backend API endpoint for adding problems
-      const response = await fetch('http://127.0.0.1:8000/problems', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(problemData),
-      });
-
-      if (!response.ok) {
-        let errorMessage = 'Failed to add problem. Please try again.';
-        try {
-          const errorData = await response.json();
-          // Handle FastAPI 422 Unprocessable Entity errors specifically
-          if (response.status === 422 && errorData.detail) {
-            if (Array.isArray(errorData.detail) && errorData.detail.length > 0) {
-              // Extract the main message from the first validation error
-              errorMessage = errorData.detail[0].msg;
-            } else if (typeof errorData.detail === 'string') {
-              errorMessage = errorData.detail;
+  // Mutation for adding a problem
+  const addMutation = useMutation({
+    mutationFn: async (problemData: ProblemData) => {
+        const response = await fetch('http://127.0.0.1:8000/problems', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(problemData),
+        });
+  
+        if (!response.ok) {
+          let errorMessage = 'Failed to add problem. Please try again.';
+          try {
+            const errorData = await response.json();
+            if (response.status === 422 && errorData.detail) {
+              if (Array.isArray(errorData.detail) && errorData.detail.length > 0) {
+                errorMessage = errorData.detail[0].msg;
+              } else if (typeof errorData.detail === 'string') {
+                errorMessage = errorData.detail;
+              }
+            } else if (errorData.detail) {
+                errorMessage = errorData.detail;
             }
-          } else if (errorData.detail) { // Handle other generic errors with a 'detail' key
-            errorMessage = errorData.detail;
-          }
-        } catch (e) { /* Response may not have a JSON body, fall back to default message */ }
-        throw new Error(errorMessage);
+          } catch (e) {}
+          throw new Error(errorMessage);
+        }
+        return response.json();
+    },
+    onSuccess: (newProblem) => {
+        // Instantly update UI cache
+        queryClient.setQueryData(['problems', debouncedSearchValue], (old: Problem[] | undefined) => {
+            return old ? [newProblem, ...old] : [newProblem];
+        });
+        // We comment out immediate invalidation to prevent fetching stale data before the search engine indexes
+        // queryClient.invalidateQueries({ queryKey: ['problems'] });
+        setIsAddProblemModalOpen(false);
+        toast.success('Problem added successfully!');
+    },
+    onError: (error) => {
+        console.error('Error adding problem:', error);
+        toast.error(error.message);
+    }
+  });
+
+  // Mutation for updating an existing problem
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, updatedData }: { id: number, updatedData: any }) => {
+        const response = await fetch(`http://127.0.0.1:8000/problems/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedData),
+        });
+        
+        if (!response.ok) {
+            let errorMessage = 'Failed to update problem. Please try again.';
+            try {
+                const errorData = await response.json();
+                if (errorData.detail) {
+                    errorMessage = Array.isArray(errorData.detail) ? errorData.detail[0].msg : errorData.detail;
+                }
+            } catch (e) {}
+            throw new Error(errorMessage);
+        }
+        return response.json();
+    },
+    onSuccess: (updatedProblem) => {
+        // Instantly update UI cache
+        queryClient.setQueryData(['problems', debouncedSearchValue], (old: Problem[] | undefined) => {
+            return old ? old.map(p => p.id === updatedProblem.id ? updatedProblem : p) : [];
+        });
+        // We comment out immediate invalidation to prevent fetching stale data before the search engine indexes
+        // queryClient.invalidateQueries({ queryKey: ['problems'] });
+        setEditingProblem(null);
+        toast.success('Problem updated successfully!');
+    },
+    onError: (error) => {
+        console.error('Error updating problem:', error);
+        toast.error(error.message);
+    }
+  });
+
+  // Mutation for deleting a problem
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+        const response = await fetch(`http://127.0.0.1:8000/problems/${id}`, { method: 'DELETE' });
+        if (!response.ok) {
+            let errorMessage = 'Failed to delete problem. Please try again.';
+            try {
+                const errorData = await response.json();
+                if (errorData.detail) {
+                    errorMessage = Array.isArray(errorData.detail) ? errorData.detail[0].msg : errorData.detail;
+                }
+            } catch (e) {}
+            throw new Error(errorMessage);
+        }
+        return id;
+    },
+    onSuccess: (deletedId) => {
+        // Instantly update UI cache
+        queryClient.setQueryData(['problems', debouncedSearchValue], (old: Problem[] | undefined) => {
+            return old ? old.filter(p => p.id !== deletedId) : [];
+        });
+        // We comment out immediate invalidation to prevent fetching stale data before the search engine indexes
+        // queryClient.invalidateQueries({ queryKey: ['problems'] });
+        toast.success('Problem deleted successfully!');
+    },
+    onError: (error) => {
+        console.error('Error deleting problem:', error);
+        toast.error(error.message);
+    }
+  });
+
+  const handleDeleteProblem = (id: number) => {
+      if (window.confirm('Are you sure you want to delete this problem?')) {
+          deleteMutation.mutate(id);
       }
-
-      const newProblem: Problem = await response.json();
-      // Add the new problem to the top of the list
-      setProblems(prevProblems => [newProblem, ...prevProblems]);
-      setIsAddProblemModalOpen(false);
-      toast.success('Problem added successfully!');
-    } catch (error) {
-      console.error('Error adding problem:', error);
-      toast.error((error as Error).message); 
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
-
-  // Handle updating an existing problem
-  const handleUpdateProblem = async (id: number, updatedData: any) => {
-    setIsUpdating(true);
-    try {
-      const response = await fetch(`http://127.0.0.1:8000/problems/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updatedData),
-      });
-
-      if (!response.ok) {
-        let errorMessage = 'Failed to update problem. Please try again.';
-        try {
-          const errorData = await response.json();
-          if (errorData.detail) {
-            errorMessage = Array.isArray(errorData.detail) ? errorData.detail[0].msg : errorData.detail;
-          }
-        } catch (e) { /* Fall back to default message */ }
-        throw new Error(errorMessage);
-      }
-
-      const updatedProblem: Problem = await response.json();
-      // Update the problem in local state
-      setProblems(prevProblems => prevProblems.map(p => p.id === id ? updatedProblem : p));
-      setEditingProblem(null);
-      toast.success('Problem updated successfully!');
-    } catch (error) {
-      console.error('Error updating problem:', error);
-      toast.error((error as Error).message); 
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
-  // Handle deleting a problem
-  const handleDeleteProblem = async (id: number) => {
-    if (!window.confirm('Are you sure you want to delete this problem?')) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`http://127.0.0.1:8000/problems/${id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        let errorMessage = 'Failed to delete problem. Please try again.';
-        try {
-          const errorData = await response.json();
-          if (errorData.detail) {
-            errorMessage = Array.isArray(errorData.detail) ? errorData.detail[0].msg : errorData.detail;
-          }
-        } catch (e) { /* Fall back to default message */ }
-        throw new Error(errorMessage);
-      }
-
-      // Remove the problem from local state
-      setProblems(prevProblems => prevProblems.filter(p => p.id !== id));
-      toast.success('Problem deleted successfully!');
-    } catch (error) {
-      console.error('Error deleting problem:', error);
-      toast.error((error as Error).message); 
-    }
   };
 
   return (
@@ -203,16 +200,16 @@ function App() {
           <FAB onClick={() => setIsAddProblemModalOpen(true)} />
           <AddProblemModal
             isOpen={isAddProblemModalOpen}
-            isLoading={isAnalyzing}
-            onClose={() => !isAnalyzing && setIsAddProblemModalOpen(false)}
-            onSubmit={handleAddProblem}
+            isLoading={addMutation.isPending}
+            onClose={() => !addMutation.isPending && setIsAddProblemModalOpen(false)}
+            onSubmit={(data) => addMutation.mutate(data)}
           />
           <EditProblemModal
             isOpen={!!editingProblem}
             problem={editingProblem}
-            isLoading={isUpdating}
-            onClose={() => !isUpdating && setEditingProblem(null)}
-            onSubmit={handleUpdateProblem}
+            isLoading={updateMutation.isPending}
+            onClose={() => !updateMutation.isPending && setEditingProblem(null)}
+            onSubmit={(id, data) => updateMutation.mutate({ id, updatedData: data })}
           />
         </div>
       )}
