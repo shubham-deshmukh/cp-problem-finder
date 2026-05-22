@@ -39,7 +39,7 @@
   background: rgba(0, 0, 0, 0.02);
 }
 
-.dark-mode .problems-table tbody tr:hover {
+:global(.dark-mode) .problems-table tbody tr:hover {
   background: rgba(255, 255, 255, 0.02);
 }
 

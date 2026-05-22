@@ -7,7 +7,7 @@
   transition: background-color 0.3s ease;
 }
 
-.app.dark-mode {
+.app:global(.dark-mode) {
   color-scheme: dark;
 }
 
@@ -35,4 +35,3 @@
     padding: 12px;
   }
 }
-

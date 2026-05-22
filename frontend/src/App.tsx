@@ -190,7 +190,7 @@ function App() {
       {!isAuthenticated ? (
         <LoginPage onLoginSuccess={() => setIsAuthenticated(true)} />
       ) : (
-        <div className={`${styles.app} ${isDarkMode ? styles['dark-mode'] : ''}`}>
+        <div className={`${styles.app} ${isDarkMode ? 'dark-mode' : ''}`}>
           <Header onThemeToggle={toggleTheme} isDarkMode={isDarkMode} />
           <div className={styles['main-content']}>
             <SearchBar searchValue={searchValue} onSearchChange={setSearchValue} />
