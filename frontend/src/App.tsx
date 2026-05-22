@@ -10,9 +10,9 @@ import { type Problem, type ProblemData } from './types';
 import EditProblemModal from './components/EditProblemModal';
 import toast, { Toaster } from 'react-hot-toast';
 import { LoginPage } from './components/Login';
+import { useAuthStore } from './stores/authStore';
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   const [debouncedSearchValue, setDebouncedSearchValue] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -21,14 +21,7 @@ function App() {
 
   // Access the QueryClient to invalidate cache after mutations
   const queryClient = useQueryClient();
-
-  useEffect(() => {
-    // Check if user is already authenticated (e.g., from localStorage or session)
-    const authToken = localStorage.getItem('authToken');
-    if (authToken) {
-      setIsAuthenticated(true);
-    }
-  }, []);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   // Debounce search input
   useEffect(() => {
@@ -185,7 +178,7 @@ function App() {
         }} 
       />
       {!isAuthenticated ? (
-        <LoginPage onLoginSuccess={() => setIsAuthenticated(true)} />
+        <LoginPage />
       ) : (
         <div className={`${styles.app} ${isDarkMode ? 'dark-mode' : ''}`}>
           <Header onThemeToggle={toggleTheme} isDarkMode={isDarkMode} />

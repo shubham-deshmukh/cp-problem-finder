@@ -1,12 +1,10 @@
 import { useState } from 'react';
 import styles from './Login.module.css';
+import { useAuthStore } from '../stores/authStore';
 
-interface LoginPageProps {
-  onLoginSuccess?: () => void;
-}
-
-export function LoginPage({ onLoginSuccess }: LoginPageProps) {
+export function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const login = useAuthStore((state) => state.login);
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);
@@ -17,7 +15,8 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
       // You would typically redirect to your backend's OAuth endpoint
       // window.location.href = 'http://127.0.0.1:8000/auth/google';
       
-      onLoginSuccess?.();
+      const dummyToken = 'dummy-oauth-token';
+      login(dummyToken);
     } catch (error) {
       console.error('Login failed:', error);
     } finally {
