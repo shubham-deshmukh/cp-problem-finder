@@ -30,7 +30,7 @@ client = meilisearch.Client(MEILI_URL, MEILI_MASTER_KEY)
 # 2. Convert JS dummy data into Python dictionaries
 DUMMY_DATA = [
     {"id": 1, "platform": "Leetcode", "platformIcon": "◼️", "title": "Longest Common Subsequence", "link": "https://leetcode.com/problems/longest-common-subsequence/", "tags": ["dynamic programming", "strings", "greedy", "recursion"], "difficulty": "High"},
-    {"id": 2, "platform": "Codeforces", "platformIcon": "📊", "title": "Edit Distance", "link": "https://codeforces.com/problemset/problem/72/E", "tags": ["dynamic programming", "graphs", "graphs"], "difficulty": "High"},
+    {"id": 2, "platform": "Codeforces", "platformIcon": "📊", "title": "Edit Distance", "link": "https://codeforces.com/problemset/problem/72/E", "tags": ["dynamic programming", "graphs"], "difficulty": "High"},
     {"id": 3, "platform": "Atcoder", "platformIcon": "🐜", "title": "Traveling Salesman", "link": "https://atcoder.jp/contests/abc/tasks/abc_tsp", "tags": ["dynamic programming", "strings", "greedy"], "difficulty": "Medium"},
     {"id": 4, "platform": "Codechef", "platformIcon": "🍳", "title": "Longest Connection", "link": "https://www.codechef.com/problems/LONGC", "tags": ["dynamic programming", "graphs", "greedy"], "difficulty": "High"},
     {"id": 5, "platform": "Codechef", "platformIcon": "🍳", "title": "Traveling Pattern", "link": "https://www.codechef.com/problems/TRVPAT", "tags": ["dynamic programming", "greedy", "recursion", "recursion"], "difficulty": "High"},
