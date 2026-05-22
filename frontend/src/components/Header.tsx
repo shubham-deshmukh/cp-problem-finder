@@ -1,4 +1,5 @@
 import styles from './Header.module.css';
+import { UserDropdown } from './UserDropdown';
 
 interface HeaderProps {
   onThemeToggle?: () => void;
@@ -26,9 +27,7 @@ export function Header({ onThemeToggle, isDarkMode }: HeaderProps) {
           </button>
         </div>
 
-        <button className={`${styles['icon-button']} ${styles['profile-button']}`} title="Profile">
-          <div className={styles['profile-avatar']}>U</div>
-        </button>
+        <UserDropdown />
       </div>
     </header>
   );
