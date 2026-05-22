@@ -2,9 +2,10 @@ import './Header.css';
 
 interface HeaderProps {
   onThemeToggle?: () => void;
+  isDarkMode?: boolean;
 }
 
-export function Header({ onThemeToggle }: HeaderProps) {
+export function Header({ onThemeToggle, isDarkMode }: HeaderProps) {
   return (
     <header className="header">
       <div className="header-left">
@@ -17,18 +18,11 @@ export function Header({ onThemeToggle }: HeaderProps) {
       <div className="header-right">
         <div className="theme-toggle">
           <button 
-            className="icon-button theme-button sun-button" 
+            className={`icon-button theme-button ${isDarkMode ? 'sun-button' : 'moon-button'}`} 
             onClick={onThemeToggle}
-            title="Light theme"
+            title={isDarkMode ? "Switch to light theme" : "Switch to dark theme"}
           >
-            ☀️
-          </button>
-          <button 
-            className="icon-button theme-button moon-button" 
-            onClick={onThemeToggle}
-            title="Dark theme"
-          >
-            🌙
+            {isDarkMode ? '☀️' : '🌙'}
           </button>
         </div>
 

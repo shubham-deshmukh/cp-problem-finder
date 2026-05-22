@@ -178,7 +178,7 @@ function App() {
           style: { background: isDarkMode ? '#333' : '#fff', color: isDarkMode ? '#fff' : '#333' }
         }} 
       />
-      <Header onThemeToggle={toggleTheme} />
+      <Header onThemeToggle={toggleTheme} isDarkMode={isDarkMode} />
       <div className="main-content">
         <SearchBar searchValue={searchValue} onSearchChange={setSearchValue} />
         {isLoading ? (
