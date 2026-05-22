@@ -8,8 +8,10 @@ import AddProblemModal from './components/AddProblemModal';
 import { type Problem, type ProblemData } from './types';
 import EditProblemModal from './components/EditProblemModal';
 import toast, { Toaster } from 'react-hot-toast';
+import { LoginPage } from './components/Login';
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isAddProblemModalOpen, setIsAddProblemModalOpen] = useState(false);
@@ -18,6 +20,14 @@ function App() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [problems, setProblems] = useState<Problem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Check if user is already authenticated (e.g., from localStorage or session)
+    const authToken = localStorage.getItem('authToken');
+    if (authToken) {
+      setIsAuthenticated(true);
+    }
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -170,38 +180,43 @@ function App() {
   };
 
   return (
-    <div className={`app ${isDarkMode ? 'dark-mode' : ''}`}>
+    <>
       <Toaster 
         position="bottom-right" 
         toastOptions={{
-          // Automatically adjust toast colors based on your current theme
           style: { background: isDarkMode ? '#333' : '#fff', color: isDarkMode ? '#fff' : '#333' }
         }} 
       />
-      <Header onThemeToggle={toggleTheme} isDarkMode={isDarkMode} />
-      <div className="main-content">
-        <SearchBar searchValue={searchValue} onSearchChange={setSearchValue} />
-        {isLoading ? (
-          <div style={{ textAlign: 'center', padding: '2rem' }}>Loading problems...</div>
-        ) : (
-          <ProblemTable problems={problems} onEdit={setEditingProblem} onDelete={handleDeleteProblem} />
-        )}
-      </div>
-      <FAB onClick={() => setIsAddProblemModalOpen(true)} />
-      <AddProblemModal
-        isOpen={isAddProblemModalOpen}
-        isLoading={isAnalyzing}
-        onClose={() => !isAnalyzing && setIsAddProblemModalOpen(false)}
-        onSubmit={handleAddProblem}
-      />
-      <EditProblemModal
-        isOpen={!!editingProblem}
-        problem={editingProblem}
-        isLoading={isUpdating}
-        onClose={() => !isUpdating && setEditingProblem(null)}
-        onSubmit={handleUpdateProblem}
-      />
-    </div>
+      {!isAuthenticated ? (
+        <LoginPage onLoginSuccess={() => setIsAuthenticated(true)} />
+      ) : (
+        <div className={`app ${isDarkMode ? 'dark-mode' : ''}`}>
+          <Header onThemeToggle={toggleTheme} isDarkMode={isDarkMode} />
+          <div className="main-content">
+            <SearchBar searchValue={searchValue} onSearchChange={setSearchValue} />
+            {isLoading ? (
+              <div style={{ textAlign: 'center', padding: '2rem' }}>Loading problems...</div>
+            ) : (
+              <ProblemTable problems={problems} onEdit={setEditingProblem} onDelete={handleDeleteProblem} />
+            )}
+          </div>
+          <FAB onClick={() => setIsAddProblemModalOpen(true)} />
+          <AddProblemModal
+            isOpen={isAddProblemModalOpen}
+            isLoading={isAnalyzing}
+            onClose={() => !isAnalyzing && setIsAddProblemModalOpen(false)}
+            onSubmit={handleAddProblem}
+          />
+          <EditProblemModal
+            isOpen={!!editingProblem}
+            problem={editingProblem}
+            isLoading={isUpdating}
+            onClose={() => !isUpdating && setEditingProblem(null)}
+            onSubmit={handleUpdateProblem}
+          />
+        </div>
+      )}
+    </>
   );
 }
 
