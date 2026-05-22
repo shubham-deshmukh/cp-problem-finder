@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './AddProblemModal.css';
+import styles from './AddProblemModal.module.css';
 import { type ProblemData, type DifficultyLevel } from '../types';
 
 interface AddProblemModalProps {
@@ -72,20 +72,20 @@ const AddProblemModal: React.FC<AddProblemModalProps> = ({ isOpen, isLoading = f
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={e => e.stopPropagation()}>
-        <div className="modal-header">
+    <div className={styles['modal-overlay']} onClick={onClose}>
+      <div className={styles['modal-content']} onClick={e => e.stopPropagation()}>
+        <div className={styles['modal-header']}>
           <h2>Add New Problem</h2>
-          <button type="button" className="close-button" onClick={onClose} disabled={isLoading}>&times;</button>
+          <button type="button" className={styles['close-button']} onClick={onClose} disabled={isLoading}>&times;</button>
         </div>
         
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
+          <div className={styles['form-group']}>
             <label htmlFor="link">Problem Link</label>
             <input 
               type="url" 
               id="link" 
-              className="form-control" 
+              className={styles['form-control']} 
               value={link}
               onChange={(e) => setLink(e.target.value)}
               placeholder="e.g. https://leetcode.com/problems/two-sum/"
@@ -94,9 +94,9 @@ const AddProblemModal: React.FC<AddProblemModalProps> = ({ isOpen, isLoading = f
             />
           </div>
 
-          <div className="form-group">
+          <div className={styles['form-group']}>
             <label htmlFor="platform">Platform</label>
-            <select id="platform" className="form-control" value={platform} onChange={(e) => setPlatform(e.target.value)} disabled={isLoading}>
+            <select id="platform" className={styles['form-control']} value={platform} onChange={(e) => setPlatform(e.target.value)} disabled={isLoading}>
               <option value="Leetcode">Leetcode</option>
               <option value="Codeforces">Codeforces</option>
               <option value="CSES">CSES</option>
@@ -105,19 +105,19 @@ const AddProblemModal: React.FC<AddProblemModalProps> = ({ isOpen, isLoading = f
             </select>
           </div>
 
-          <div className="form-group">
+          <div className={styles['form-group']}>
             <label htmlFor="difficulty">Difficulty</label>
-            <select id="difficulty" className="form-control" value={difficulty} onChange={(e) => setDifficulty(e.target.value as DifficultyLevel)} disabled={isLoading}>
+            <select id="difficulty" className={styles['form-control']} value={difficulty} onChange={(e) => setDifficulty(e.target.value as DifficultyLevel)} disabled={isLoading}>
               <option value="Easy">Easy</option>
               <option value="Medium">Medium</option>
               <option value="High">High</option>
             </select>
           </div>
 
-          <div className="form-group">
+          <div className={styles['form-group']}>
           <label htmlFor="tags">Tags</label>
           <div 
-            className="form-control" 
+            className={styles['form-control']} 
             style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', minHeight: '38px', padding: '6px 12px', alignItems: 'center', height: 'auto' }}
           >
             {tags.map(tag => (
@@ -142,9 +142,9 @@ const AddProblemModal: React.FC<AddProblemModalProps> = ({ isOpen, isLoading = f
           </div>
           </div>
 
-          <div className="modal-actions">
-            <button type="button" className="btn-cancel" onClick={onClose} disabled={isLoading}>Cancel</button>
-            <button type="submit" className="btn-submit" disabled={isLoading}>
+          <div className={styles['modal-actions']}>
+            <button type="button" className={styles['btn-cancel']} onClick={onClose} disabled={isLoading}>Cancel</button>
+            <button type="submit" className={styles['btn-submit']} disabled={isLoading}>
               {isLoading ? 'Analyzing...' : 'Analyze & Add'}
             </button>
           </div>

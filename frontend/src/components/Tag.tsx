@@ -1,4 +1,4 @@
-import './Tag.css';
+import styles from './Tag.module.css';
 
 interface TagProps {
   text: string;
@@ -6,17 +6,17 @@ interface TagProps {
 
 export function Tag({ text }: TagProps) {
   const tagColorMap: Record<string, string> = {
-    'dynamic programming': 'tag-blue',
-    'strings': 'tag-green',
-    'greedy': 'tag-yellow',
-    'recursion': 'tag-purple',
-    'graphs': 'tag-green',
+    'dynamic programming': styles['tag-blue'],
+    'strings': styles['tag-green'],
+    'greedy': styles['tag-yellow'],
+    'recursion': styles['tag-purple'],
+    'graphs': styles['tag-green'],
   };
 
-  const colorClass = tagColorMap[text.toLowerCase()] || 'tag-blue';
+  const colorClass = tagColorMap[text.toLowerCase()] || styles['tag-blue'];
 
   return (
-    <span className={`tag ${colorClass}`}>
+    <span className={`${styles.tag} ${colorClass}`}>
       {text}
     </span>
   );

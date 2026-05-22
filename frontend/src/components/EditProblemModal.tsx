@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './AddProblemModal.css';
+import styles from './AddProblemModal.module.css';
 import { type Problem, type DifficultyLevel } from '../types';
 
 interface EditProblemModalProps {
@@ -67,27 +67,27 @@ const EditProblemModal: React.FC<EditProblemModalProps> = ({ isOpen, isLoading =
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={e => e.stopPropagation()}>
-        <div className="modal-header">
+    <div className={styles['modal-overlay']} onClick={onClose}>
+      <div className={styles['modal-content']} onClick={e => e.stopPropagation()}>
+        <div className={styles['modal-header']}>
           <h2>Edit Problem</h2>
-          <button type="button" className="close-button" onClick={onClose} disabled={isLoading}>&times;</button>
+          <button type="button" className={styles['close-button']} onClick={onClose} disabled={isLoading}>&times;</button>
         </div>
         
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
+          <div className={styles['form-group']}>
             <label htmlFor="edit-title">Title</label>
-            <input type="text" id="edit-title" className="form-control" value={title} onChange={(e) => setTitle(e.target.value)} required disabled={isLoading} />
+            <input type="text" id="edit-title" className={styles['form-control']} value={title} onChange={(e) => setTitle(e.target.value)} required disabled={isLoading} />
           </div>
 
-          <div className="form-group">
+          <div className={styles['form-group']}>
             <label htmlFor="edit-link">Problem Link</label>
-            <input type="url" id="edit-link" className="form-control" value={link} readOnly disabled title="Problem link cannot be changed" />
+            <input type="url" id="edit-link" className={styles['form-control']} value={link} readOnly disabled title="Problem link cannot be changed" />
           </div>
 
-          <div className="form-group">
+          <div className={styles['form-group']}>
             <label htmlFor="edit-platform">Platform</label>
-            <select id="edit-platform" className="form-control" value={platform} disabled title="Platform cannot be changed">
+            <select id="edit-platform" className={styles['form-control']} value={platform} disabled title="Platform cannot be changed">
               <option value="Leetcode">Leetcode</option>
               <option value="Codeforces">Codeforces</option>
               <option value="CSES">CSES</option>
@@ -96,18 +96,18 @@ const EditProblemModal: React.FC<EditProblemModalProps> = ({ isOpen, isLoading =
             </select>
           </div>
 
-          <div className="form-group">
+          <div className={styles['form-group']}>
             <label htmlFor="edit-difficulty">Difficulty</label>
-            <select id="edit-difficulty" className="form-control" value={difficulty} onChange={(e) => setDifficulty(e.target.value as DifficultyLevel)} disabled={isLoading}>
+            <select id="edit-difficulty" className={styles['form-control']} value={difficulty} onChange={(e) => setDifficulty(e.target.value as DifficultyLevel)} disabled={isLoading}>
               <option value="Easy">Easy</option>
               <option value="Medium">Medium</option>
               <option value="High">High</option>
             </select>
           </div>
 
-          <div className="form-group">
+          <div className={styles['form-group']}>
             <label htmlFor="edit-tags">Tags</label>
-            <div className="form-control" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', minHeight: '38px', padding: '6px 12px', alignItems: 'center', height: 'auto' }}>
+            <div className={styles['form-control']} style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', minHeight: '38px', padding: '6px 12px', alignItems: 'center', height: 'auto' }}>
               {tags.map(tag => (
                 <span key={tag} style={{ background: 'rgba(150, 150, 150, 0.2)', color: 'inherit', padding: '2px 8px', borderRadius: '4px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}>{tag}<button type="button" onClick={() => handleRemoveTag(tag)} style={{ border: 'none', background: 'transparent', color: 'inherit', opacity: 0.7, cursor: 'pointer', padding: '0', fontSize: '1.1rem', lineHeight: '1', display: 'flex' }}>&times;</button></span>
               ))}
@@ -115,9 +115,9 @@ const EditProblemModal: React.FC<EditProblemModalProps> = ({ isOpen, isLoading =
             </div>
           </div>
 
-          <div className="modal-actions">
-            <button type="button" className="btn-cancel" onClick={onClose} disabled={isLoading}>Cancel</button>
-            <button type="submit" className="btn-submit" disabled={isLoading}>{isLoading ? 'Updating...' : 'Update Problem'}</button>
+          <div className={styles['modal-actions']}>
+            <button type="button" className={styles['btn-cancel']} onClick={onClose} disabled={isLoading}>Cancel</button>
+            <button type="submit" className={styles['btn-submit']} disabled={isLoading}>{isLoading ? 'Updating...' : 'Update Problem'}</button>
           </div>
         </form>
       </div>

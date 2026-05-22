@@ -1,4 +1,4 @@
-import './SearchBar.css';
+import styles from './SearchBar.module.css';
 
 interface SearchBarProps {
   searchValue: string;
@@ -7,12 +7,12 @@ interface SearchBarProps {
 
 export function SearchBar({ searchValue, onSearchChange }: SearchBarProps) {
   return (
-    <div className="search-container">
-      <div className="search-bar">
-        <span className="search-icon">🔍</span>
+    <div className={styles['search-container']}>
+      <div className={styles['search-bar']}>
+        <span className={styles['search-icon']}>🔍</span>
         <input
           type="text"
-          className="search-input"
+          className={styles['search-input']}
           placeholder="Search by title or tag..."
           value={searchValue}
           onChange={(e) => onSearchChange(e.target.value)}
@@ -22,7 +22,7 @@ export function SearchBar({ searchValue, onSearchChange }: SearchBarProps) {
         </span> */}
         {searchValue && (
           <button 
-            className="clear-button"
+            className={styles['clear-button']}
             onClick={() => onSearchChange('')}
           >
             ✕

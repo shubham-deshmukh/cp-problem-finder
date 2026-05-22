@@ -1,4 +1,4 @@
-import './Header.css';
+import styles from './Header.module.css';
 
 interface HeaderProps {
   onThemeToggle?: () => void;
@@ -7,18 +7,18 @@ interface HeaderProps {
 
 export function Header({ onThemeToggle, isDarkMode }: HeaderProps) {
   return (
-    <header className="header">
-      <div className="header-left">
-        <div className="logo">
-          <div className="logo-icon">CP</div>
-          <span className="logo-text">CP Problem Finder</span>
+    <header className={styles.header}>
+      <div className={styles['header-left']}>
+        <div className={styles.logo}>
+          <div className={styles['logo-icon']}>CP</div>
+          <span className={styles['logo-text']}>CP Problem Finder</span>
         </div>
       </div>
 
-      <div className="header-right">
-        <div className="theme-toggle">
+      <div className={styles['header-right']}>
+        <div className={styles['theme-toggle']}>
           <button 
-            className={`icon-button theme-button ${isDarkMode ? 'sun-button' : 'moon-button'}`} 
+            className={`${styles['icon-button']} ${styles['theme-button']} ${isDarkMode ? styles['sun-button'] : styles['moon-button']}`} 
             onClick={onThemeToggle}
             title={isDarkMode ? "Switch to light theme" : "Switch to dark theme"}
           >
@@ -26,8 +26,8 @@ export function Header({ onThemeToggle, isDarkMode }: HeaderProps) {
           </button>
         </div>
 
-        <button className="icon-button profile-button" title="Profile">
-          <div className="profile-avatar">U</div>
+        <button className={`${styles['icon-button']} ${styles['profile-button']}`} title="Profile">
+          <div className={styles['profile-avatar']}>U</div>
         </button>
       </div>
     </header>

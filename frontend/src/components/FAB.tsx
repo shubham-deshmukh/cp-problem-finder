@@ -1,4 +1,4 @@
-import './FAB.css';
+import styles from './FAB.module.css';
 
 interface FABProps {
   onClick?: () => void;
@@ -6,7 +6,7 @@ interface FABProps {
 
 export function FAB({ onClick }: FABProps) {
   return (
-    <button className="fab" onClick={onClick} title="Add problem">
+    <button className={styles.fab} onClick={onClick} title="Add problem">
       +
     </button>
   );

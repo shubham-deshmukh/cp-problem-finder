@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import './Login.css';
+import styles from './Login.module.css';
 
 interface LoginPageProps {
   onLoginSuccess?: () => void;
@@ -26,30 +26,30 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-background">
+    <div className={styles['login-container']}>
+      <div className={styles['login-background']}>
         {/* Decorative code snippets */}
-        <div className="code-snippet code-snippet-1">&lt;/&gt;</div>
-        <div className="code-snippet code-snippet-2">{'{ }'}</div>
-        <div className="code-snippet code-snippet-3">C++</div>
-        <div className="code-snippet code-snippet-4">&lt;/7</div>
+        <div className={`${styles['code-snippet']} ${styles['code-snippet-1']}`}>&lt;/&gt;</div>
+        <div className={`${styles['code-snippet']} ${styles['code-snippet-2']}`}>{'{ }'}</div>
+        <div className={`${styles['code-snippet']} ${styles['code-snippet-3']}`}>C++</div>
+        <div className={`${styles['code-snippet']} ${styles['code-snippet-4']}`}>&lt;/7</div>
       </div>
 
-      <div className="login-card">
+      <div className={styles['login-card']}>
         {/* Logo and Title */}
-        <div className="login-header">
-          <div className="logo-icon">CP</div>
-          <h1 className="login-title">
-            Welcome to <span className="brand-text">CP Problem Finder</span>
+        <div className={styles['login-header']}>
+          <div className={styles['logo-icon']}>CP</div>
+          <h1 className={styles['login-title']}>
+            Welcome to <span className={styles['brand-text']}>CP Problem Finder</span>
           </h1>
-          <p className="login-subtitle">
+          <p className={styles['login-subtitle']}>
             Search, explore and master Data Structures & Algorithms
           </p>
         </div>
 
         {/* Google Login Button */}
         <button
-          className="google-login-btn"
+          className={styles['google-login-btn']}
           onClick={handleGoogleLogin}
           disabled={isLoading}
         >
@@ -63,12 +63,12 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
         </button>
 
         {/* Divider */}
-        <div className="divider">
+        <div className={styles.divider}>
           <span>or</span>
         </div>
 
         {/* Security Message */}
-        <div className="security-message">
+        <div className={styles['security-message']}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" fill="currentColor"/>
           </svg>
@@ -76,50 +76,50 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
         </div>
 
         {/* Features Section */}
-        <div className="features-section">
-          <div className="feature">
-            <div className="feature-icon feature-icon-1">
+        <div className={styles['features-section']}>
+          <div className={styles.feature}>
+            <div className={`${styles['feature-icon']} ${styles['feature-icon-1']}`}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
               </svg>
             </div>
-            <div className="feature-content">
-              <h3 className="feature-title">Fast & Easy Access</h3>
-              <p className="feature-desc">One click sign-in to continue</p>
+            <div className={styles['feature-content']}>
+              <h3 className={styles['feature-title']}>Fast & Easy Access</h3>
+              <p className={styles['feature-desc']}>One click sign-in to continue</p>
             </div>
           </div>
 
-          <div className="feature">
-            <div className="feature-icon feature-icon-2">
+          <div className={styles.feature}>
+            <div className={`${styles['feature-icon']} ${styles['feature-icon-2']}`}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 11h-4v-2h4V6h2v4h4v2h-4v4h-2v-4z"/>
               </svg>
             </div>
-            <div className="feature-content">
-              <h3 className="feature-title">Secure & Private</h3>
-              <p className="feature-desc">We never store your password</p>
+            <div className={styles['feature-content']}>
+              <h3 className={styles['feature-title']}>Secure & Private</h3>
+              <p className={styles['feature-desc']}>We never store your password</p>
             </div>
           </div>
 
-          <div className="feature">
-            <div className="feature-icon feature-icon-3">
+          <div className={styles.feature}>
+            <div className={`${styles['feature-icon']} ${styles['feature-icon-3']}`}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
               </svg>
             </div>
-            <div className="feature-content">
-              <h3 className="feature-title">Personalized Experience</h3>
-              <p className="feature-desc">Sync your progress across devices</p>
+            <div className={styles['feature-content']}>
+              <h3 className={styles['feature-title']}>Personalized Experience</h3>
+              <p className={styles['feature-desc']}>Sync your progress across devices</p>
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="login-footer">
+        <div className={styles['login-footer']}>
           <p>
             By continuing, you agree to our{' '}
-            <a href="#" className="footer-link">Terms of Service</a> and{' '}
-            <a href="#" className="footer-link">Privacy Policy</a>.
+            <a href="#" className={styles['footer-link']}>Terms of Service</a> and{' '}
+            <a href="#" className={styles['footer-link']}>Privacy Policy</a>.
           </p>
         </div>
       </div>

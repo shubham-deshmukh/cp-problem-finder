@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import './App.css';
+import styles from './App.module.css';
 import { Header } from './components/Header';
 import { SearchBar } from './components/SearchBar';
 import { FAB } from './components/FAB';
@@ -190,9 +190,9 @@ function App() {
       {!isAuthenticated ? (
         <LoginPage onLoginSuccess={() => setIsAuthenticated(true)} />
       ) : (
-        <div className={`app ${isDarkMode ? 'dark-mode' : ''}`}>
+        <div className={`${styles.app} ${isDarkMode ? styles['dark-mode'] : ''}`}>
           <Header onThemeToggle={toggleTheme} isDarkMode={isDarkMode} />
-          <div className="main-content">
+          <div className={styles['main-content']}>
             <SearchBar searchValue={searchValue} onSearchChange={setSearchValue} />
             {isLoading ? (
               <div style={{ textAlign: 'center', padding: '2rem' }}>Loading problems...</div>

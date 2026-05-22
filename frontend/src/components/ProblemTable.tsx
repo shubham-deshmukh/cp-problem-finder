@@ -1,4 +1,4 @@
-import './ProblemTable.css';
+import styles from './ProblemTable.module.css';
 import { Tag } from './Tag';
 import { type Problem } from '../types';
 
@@ -10,56 +10,56 @@ interface ProblemTableProps {
 
 export function ProblemTable({ problems, onEdit, onDelete }: ProblemTableProps) {
   return (
-    <div className="table-wrapper">
-      <table className="problems-table">
+    <div className={styles['table-wrapper']}>
+      <table className={styles['problems-table']}>
         <thead>
           <tr>
-            <th className="col-platform">Platform</th>
-            <th className="col-title">Title</th>
-            <th className="col-tags">Tags</th>
-            <th className="col-difficulty">Difficulty</th>
-            <th className="col-actions" style={{ width: '80px', textAlign: 'center' }}>Actions</th>
+            <th className={styles['col-platform']}>Platform</th>
+            <th className={styles['col-title']}>Title</th>
+            <th className={styles['col-tags']}>Tags</th>
+            <th className={styles['col-difficulty']}>Difficulty</th>
+            <th className={styles['col-actions']} style={{ width: '80px', textAlign: 'center' }}>Actions</th>
           </tr>
         </thead>
         <tbody>
           {problems.map((problem) => (
-            <tr key={problem.id} className="problem-row">
-              <td className="col-platform">
-                <div className="platform-badge">
+            <tr key={problem.id} className={styles['problem-row']}>
+              <td className={styles['col-platform']}>
+                <div className={styles['platform-badge']}>
                   <img 
                     src={`/icons/${problem.platform.toLowerCase()}.png`} 
                     alt={`${problem.platform} logo`} 
-                    className="platform-icon"
+                    className={styles['platform-icon']}
                     style={{ width: '20px', height: '20px', borderRadius: '4px', objectFit: 'contain' }}
                     onError={(e) => {
                       e.currentTarget.src = '/icons/default.png';
                       e.currentTarget.onerror = null; // Prevents infinite loops if the fallback image is also missing
                     }}
                   />
-                  <span className="platform-name">{problem.platform}</span>
+                  <span className={styles['platform-name']}>{problem.platform}</span>
                 </div>
               </td>
-              <td className="col-title">
-                <a href={problem.link} target="_blank" rel="noopener noreferrer" className="problem-title">
+              <td className={styles['col-title']}>
+                <a href={problem.link} target="_blank" rel="noopener noreferrer" className={styles['problem-title']}>
                   {problem.title}
                 </a>
               </td>
-              <td className="col-tags">
-                <div className="tags-container">
+              <td className={styles['col-tags']}>
+                <div className={styles['tags-container']}>
                   {problem.tags.map((tag, idx) => (
                     <Tag key={idx} text={tag} />
                   ))}
                   {problem.isNew && (
-                    <span className="badge-new">NEWLY ADDED</span>
+                    <span className={styles['badge-new']}>NEWLY ADDED</span>
                   )}
                 </div>
               </td>
-              <td className="col-difficulty">
-                <span className={`difficulty ${problem.difficulty.toLowerCase()}`}>
+              <td className={styles['col-difficulty']}>
+                <span className={`${styles.difficulty} ${styles[problem.difficulty.toLowerCase()] || ''}`}>
                   {problem.difficulty}
                 </span>
               </td>
-              <td className="col-actions">
+              <td className={styles['col-actions']}>
                 <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
                   <button 
                     onClick={() => onEdit?.(problem)}
