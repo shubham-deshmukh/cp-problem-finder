@@ -6,6 +6,7 @@ export function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const logout = useAuthStore((state) => state.logout);
+  const user = useAuthStore((state) => state.user);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -29,6 +30,8 @@ export function UserDropdown() {
     setIsOpen(false);
   };
 
+  const userInitial = user?.name ? user.name.charAt(0).toUpperCase() : 'U';
+
   return (
     <div className={styles['user-dropdown']} ref={dropdownRef}>
       <button 
@@ -36,16 +39,24 @@ export function UserDropdown() {
         onClick={() => setIsOpen(!isOpen)}
         title="User menu"
       >
-        <div className={styles['profile-avatar']}>U</div>
+        {user?.picture ? (
+          <img src={user.picture} alt="Profile" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+        ) : (
+          <div className={styles['profile-avatar']}>{userInitial}</div>
+        )}
       </button>
 
       {isOpen && (
         <div className={styles['dropdown-card']}>
           <div className={styles['user-info']}>
-            <div className={styles['user-avatar']}>U</div>
+            {user?.picture ? (
+              <img src={user.picture} alt="Profile" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
+            ) : (
+              <div className={styles['user-avatar']}>{userInitial}</div>
+            )}
             <div className={styles['user-details']}>
-              <div className={styles['user-name']}>User</div>
-              <div className={styles['user-email']}>user@example.com</div>
+              <div className={styles['user-name']}>{user?.name || 'User'}</div>
+              <div className={styles['user-email']}>{user?.email || 'No email provided'}</div>
             </div>
           </div>
 
