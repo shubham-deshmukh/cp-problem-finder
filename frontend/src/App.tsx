@@ -22,6 +22,19 @@ function App() {
   // Access the QueryClient to invalidate cache after mutations
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const login = useAuthStore((state) => state.login);
+
+  // Intercept OAuth token from URL parameters when backend redirects back
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    
+    if (token) {
+      login(token);
+      // Clean up the URL to remove the token so it isn't visible/bookmarked
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [login]);
 
   // Debounce search input
   useEffect(() => {

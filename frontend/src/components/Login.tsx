@@ -1,22 +1,15 @@
 import { useState } from 'react';
 import styles from './Login.module.css';
-import { useAuthStore } from '../stores/authStore';
 
 export function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
-  const login = useAuthStore((state) => state.login);
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     try {
-      // TODO: Implement Google OAuth flow
-      // For now, this is a placeholder
-      console.log('Starting Google OAuth flow...');
-      // You would typically redirect to your backend's OAuth endpoint
-      // window.location.href = 'http://127.0.0.1:8000/auth/google';
-      
-      const dummyToken = 'dummy-oauth-token';
-      login(dummyToken);
+      // Redirect directly to the FastAPI backend to start the OAuth flow
+      // Ensure this URL matches your actual FastAPI server address
+      window.location.href = 'http://127.0.0.1:8000/auth/login';
     } catch (error) {
       console.error('Login failed:', error);
     } finally {
