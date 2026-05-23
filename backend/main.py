@@ -2,7 +2,8 @@ from contextlib import asynccontextmanager
 import re
 import html
 import urllib.parse
-from fastapi import FastAPI, Query, HTTPException
+from fastapi import FastAPI, Query, HTTPException, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 import meilisearch
@@ -38,6 +39,18 @@ JWT_EXPIRATION_HOURS = int(os.getenv("JWT_EXPIRATION_HOURS", "24"))
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
 client = meilisearch.Client(MEILI_URL, MEILI_MASTER_KEY)
+
+security = HTTPBearer()
+
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
+    token = credentials.credentials
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        return payload
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token has expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
 
 # 2. Convert JS dummy data into Python dictionaries
 DUMMY_DATA = [
@@ -349,7 +362,7 @@ def search_problems(
     return search_results.get("hits", [])
 
 @app.post("/problems", status_code=201, response_model=Problem)
-async def add_problem(problem_in: ProblemCreate):
+async def add_problem(problem_in: ProblemCreate, current_user: dict = Depends(get_current_user)):
     """
     Add a new DSA problem to the search index.
     """
@@ -394,7 +407,7 @@ async def add_problem(problem_in: ProblemCreate):
         raise HTTPException(status_code=500, detail="Database connection failed")
 
 @app.put("/problems/{problem_id}", response_model=Problem)
-async def update_problem(problem_id: int, problem_in: ProblemUpdate):
+async def update_problem(problem_id: int, problem_in: ProblemUpdate, current_user: dict = Depends(get_current_user)):
     """
     Update an existing DSA problem.
     """
@@ -436,7 +449,7 @@ async def update_problem(problem_id: int, problem_in: ProblemUpdate):
         raise HTTPException(status_code=500, detail="Database connection failed")
 
 @app.delete("/problems/{problem_id}", status_code=204)
-def delete_problem(problem_id: int):
+def delete_problem(problem_id: int, current_user: dict = Depends(get_current_user)):
     """
     Delete a DSA problem from the search index.
     """
