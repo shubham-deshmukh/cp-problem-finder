@@ -17,7 +17,7 @@ This is the backend service for the DSA based search engine, built with **Python
 1. **Install Python Dependencies**
    Navigate to the `backend` directory and install the required packages. (Consider using a virtual environment):
    ```bash
-   pip install fastapi uvicorn meilisearch python-dotenv
+   pip install fastapi uvicorn meilisearch python-dotenv PyJWT
    ```
 
 2. **Configure Environment Variables**
@@ -25,7 +25,7 @@ This is the backend service for the DSA based search engine, built with **Python
    ```bash
    cp .env.example .env
    ```
-   Update `.env` with your secure `MEILI_MASTER_KEY` and ensure `MEILI_URL` points to your Meilisearch instance. *(Note: Meilisearch requires the master key to be at least 16 bytes).*
+   Update `.env` with your secure `MEILI_MASTER_KEY` and ensure `MEILI_URL` points to your Meilisearch instance. *(Note: Meilisearch requires the master key to be at least 16 bytes).* Also, configure your `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`, `JWT_SECRET`, and `FRONTEND_URL` for OAuth and authentication functionality.
 
 3. **Start Meilisearch (via Docker)**
    Run the following command to start a local Meilisearch instance. Ensure the master key matches the one in your `.env` file:
@@ -55,6 +55,8 @@ This is the backend service for the DSA based search engine, built with **Python
     - `platform` (string): Filter by platform (e.g., `LeetCode`, `Codeforces`).
     - `difficulty` (string): Filter by difficulty (e.g., `High`, `Medium`).
     - `tag` (string): Filter by a specific topic tag (e.g., `dynamic programming`).
+- **`GET /auth/login`** - Initiates the Google OAuth 2.0 flow.
+- **`GET /auth/callback`** - Handles the callback from Google OAuth 2.0 and returns user info.
 
 ## Interactive API Documentation
 Once the server is running, navigate to http://127.0.0.1:8000/docs in your browser to access the interactive Swagger UI. You can test all search queries and filters directly from this interface!

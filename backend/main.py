@@ -3,6 +3,7 @@ import re
 import html
 import urllib.parse
 from fastapi import FastAPI, Query, HTTPException
+from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 import meilisearch
 from meilisearch.errors import MeilisearchCommunicationError, MeilisearchApiError
@@ -14,6 +15,8 @@ from dotenv import load_dotenv
 import httpx
 from pydantic import BaseModel, HttpUrl, field_validator, model_validator
 from curl_cffi.requests import AsyncSession
+import jwt
+from datetime import datetime, timedelta, timezone
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +27,15 @@ load_dotenv()
 MEILI_URL = os.getenv("MEILI_URL", "http://127.0.0.1:7700")
 MEILI_MASTER_KEY = os.getenv("MEILI_MASTER_KEY", "")
 INDEX_NAME = os.getenv("INDEX_NAME", "dsa_problems")
+
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
+GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "http://127.0.0.1:8000/auth/callback")
+
+JWT_SECRET = os.getenv("JWT_SECRET", "your_super_secret_jwt_key_here")
+JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
+JWT_EXPIRATION_HOURS = int(os.getenv("JWT_EXPIRATION_HOURS", "24"))
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
 client = meilisearch.Client(MEILI_URL, MEILI_MASTER_KEY)
 
@@ -441,3 +453,62 @@ def delete_problem(problem_id: int):
     except MeilisearchCommunicationError:
         logger.error(f"Failed to connect to Meilisearch while deleting problem {problem_id}.")
         raise HTTPException(status_code=500, detail="Database connection failed")
+
+@app.get("/auth/login", tags=["Authentication"])
+def login_via_google():
+    """
+    Redirect to Google OAuth 2.0 authorization endpoint.
+    """
+    google_auth_url = "https://accounts.google.com/o/oauth2/v2/auth"
+    scope = "openid email profile"
+    url = f"{google_auth_url}?response_type=code&client_id={GOOGLE_CLIENT_ID}&redirect_uri={urllib.parse.quote(GOOGLE_REDIRECT_URI)}&scope={urllib.parse.quote(scope)}&access_type=offline&prompt=consent"
+    return RedirectResponse(url)
+
+@app.get("/auth/callback", tags=["Authentication"])
+async def google_auth_callback(code: str = Query(..., description="Authorization code from Google")):
+    """
+    Callback endpoint for Google OAuth 2.0. Exchanges the auth code for an access token and fetches user info.
+    """
+    token_url = "https://oauth2.googleapis.com/token"
+    data = {
+        "code": code,
+        "client_id": GOOGLE_CLIENT_ID,
+        "client_secret": GOOGLE_CLIENT_SECRET,
+        "redirect_uri": GOOGLE_REDIRECT_URI,
+        "grant_type": "authorization_code",
+    }
+    
+    async with httpx.AsyncClient() as client:
+        # 1. Exchange the auth code for an access token
+        response = await client.post(token_url, data=data)
+        if response.status_code != 200:
+            raise HTTPException(status_code=400, detail="Failed to fetch token from Google")
+        
+        token_data = response.json()
+        access_token = token_data.get("access_token")
+        
+        # 2. Use the access token to fetch the user's profile info
+        user_info_url = "https://www.googleapis.com/oauth2/v2/userinfo"
+        headers = {"Authorization": f"Bearer {access_token}"}
+        user_info_response = await client.get(user_info_url, headers=headers)
+        
+        if user_info_response.status_code != 200:
+            raise HTTPException(status_code=400, detail="Failed to fetch user info from Google")
+            
+        user_info = user_info_response.json()
+        
+        # Create JWT session token
+        expire = datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRATION_HOURS)
+        jwt_payload = {
+            "sub": user_info.get("id"),
+            "email": user_info.get("email"),
+            "name": user_info.get("name"),
+            "picture": user_info.get("picture"),
+            "exp": expire
+        }
+        
+        access_token = jwt.encode(jwt_payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+        
+        # Redirect back to the frontend with the token
+        redirect_url = f"{FRONTEND_URL}?token={access_token}"
+        return RedirectResponse(url=redirect_url)
