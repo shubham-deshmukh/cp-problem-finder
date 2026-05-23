@@ -32,7 +32,10 @@ const EditProblemModal: React.FC<EditProblemModalProps> = ({ isOpen, isLoading =
       const fetchTags = async () => {
         setIsFetchingTags(true);
         try {
-          const response = await fetch('http://127.0.0.1:8000/tags');
+          const token = localStorage.getItem('authToken');
+          const response = await fetch('http://127.0.0.1:8000/tags', {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+          });
           if (!response.ok) throw new Error('Failed to fetch tags');
           const data = await response.json();
           setAvailableTags(data || []);

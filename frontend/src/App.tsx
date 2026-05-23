@@ -49,7 +49,11 @@ function App() {
     queryKey: ['problems', debouncedSearchValue],
     queryFn: async ({ signal }) => {
       const encodedQuery = encodeURIComponent(debouncedSearchValue);
-      const response = await fetch(`http://127.0.0.1:8000/search?q=${encodedQuery}&limit=8&offset=0`, { signal });
+      const token = localStorage.getItem('authToken');
+      const response = await fetch(`http://127.0.0.1:8000/search?q=${encodedQuery}&limit=8&offset=0`, { 
+        signal,
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      });
       if (!response.ok) throw new Error('Failed to fetch data');
       const data = await response.json();
       return data || [];
@@ -68,9 +72,13 @@ function App() {
   // Mutation for adding a problem
   const addMutation = useMutation({
     mutationFn: async (problemData: ProblemData) => {
+        const token = localStorage.getItem('authToken');
         const response = await fetch('http://127.0.0.1:8000/problems', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          },
           body: JSON.stringify(problemData),
         });
   
@@ -111,9 +119,13 @@ function App() {
   // Mutation for updating an existing problem
   const updateMutation = useMutation({
     mutationFn: async ({ id, updatedData }: { id: number, updatedData: any }) => {
+        const token = localStorage.getItem('authToken');
         const response = await fetch(`http://127.0.0.1:8000/problems/${id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json',
+              ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            },
             body: JSON.stringify(updatedData),
         });
         
@@ -148,7 +160,11 @@ function App() {
   // Mutation for deleting a problem
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-        const response = await fetch(`http://127.0.0.1:8000/problems/${id}`, { method: 'DELETE' });
+        const token = localStorage.getItem('authToken');
+        const response = await fetch(`http://127.0.0.1:8000/problems/${id}`, { 
+          method: 'DELETE',
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
         if (!response.ok) {
             let errorMessage = 'Failed to delete problem. Please try again.';
             try {
