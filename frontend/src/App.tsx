@@ -23,6 +23,8 @@ function App() {
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const login = useAuthStore((state) => state.login);
+  const user = useAuthStore((state) => state.user);
+  const isAdmin = user?.role === 'admin';
 
   // Intercept OAuth token from URL parameters when backend redirects back
   useEffect(() => {
@@ -216,10 +218,10 @@ function App() {
             {isLoading ? (
               <div style={{ textAlign: 'center', padding: '2rem' }}>Loading problems...</div>
             ) : (
-              <ProblemTable problems={problems} onEdit={setEditingProblem} onDelete={handleDeleteProblem} />
+              <ProblemTable problems={problems} onEdit={setEditingProblem} onDelete={handleDeleteProblem} isAdmin={isAdmin} />
             )}
           </div>
-          <FAB onClick={() => setIsAddProblemModalOpen(true)} />
+          {isAdmin && <FAB onClick={() => setIsAddProblemModalOpen(true)} />}
           <AddProblemModal
             isOpen={isAddProblemModalOpen}
             isLoading={addMutation.isPending}

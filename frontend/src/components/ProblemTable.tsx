@@ -6,9 +6,10 @@ interface ProblemTableProps {
   problems: Problem[];
   onEdit?: (problem: Problem) => void;
   onDelete?: (id: number) => void;
+  isAdmin?: boolean;
 }
 
-export function ProblemTable({ problems, onEdit, onDelete }: ProblemTableProps) {
+export function ProblemTable({ problems, onEdit, onDelete, isAdmin }: ProblemTableProps) {
   return (
     <div className={styles['table-wrapper']}>
       <table className={styles['problems-table']}>
@@ -18,7 +19,9 @@ export function ProblemTable({ problems, onEdit, onDelete }: ProblemTableProps) 
             <th className={styles['col-title']}>Title</th>
             <th className={styles['col-tags']}>Tags</th>
             <th className={styles['col-difficulty']}>Difficulty</th>
-            <th className={styles['col-actions']} style={{ width: '80px', textAlign: 'center' }}>Actions</th>
+            {isAdmin && (
+              <th className={styles['col-actions']} style={{ width: '80px', textAlign: 'center' }}>Actions</th>
+            )}
           </tr>
         </thead>
         <tbody>
@@ -59,24 +62,26 @@ export function ProblemTable({ problems, onEdit, onDelete }: ProblemTableProps) 
                   {problem.difficulty}
                 </span>
               </td>
-              <td className={styles['col-actions']}>
-                <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
-                  <button 
-                    onClick={() => onEdit?.(problem)}
-                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.2rem', padding: '4px' }}
-                    title="Edit problem"
-                  >
-                    ✏️
-                  </button>
-                  <button 
-                    onClick={() => onDelete?.(problem.id)}
-                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.2rem', padding: '4px' }}
-                    title="Delete problem"
-                  >
-                    🗑️
-                  </button>
-                </div>
-              </td>
+              {isAdmin && (
+                <td className={styles['col-actions']}>
+                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
+                    <button 
+                      onClick={() => onEdit?.(problem)}
+                      style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.2rem', padding: '4px' }}
+                      title="Edit problem"
+                    >
+                      ✏️
+                    </button>
+                    <button 
+                      onClick={() => onDelete?.(problem.id)}
+                      style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.2rem', padding: '4px' }}
+                      title="Delete problem"
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                </td>
+              )}
             </tr>
           ))}
         </tbody>

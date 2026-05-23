@@ -5,6 +5,7 @@ interface User {
   name: string;
   email: string;
   picture?: string;
+  role?: string;
 }
 
 interface AuthState {
@@ -22,6 +23,7 @@ const getUserFromToken = (token: string | null): User | null => {
       name: decoded.name || 'User',
       email: decoded.email || '',
       picture: decoded.picture || '',
+      role: decoded.role || 'user',
     };
   } catch (error) {
     return null;
