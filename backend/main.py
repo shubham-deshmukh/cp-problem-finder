@@ -37,6 +37,7 @@ JWT_SECRET = os.getenv("JWT_SECRET", "your_super_secret_jwt_key_here")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 JWT_EXPIRATION_HOURS = int(os.getenv("JWT_EXPIRATION_HOURS", "24"))
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+ADMIN_EMAILS = [email.strip() for email in os.getenv("ADMIN_EMAILS", "").split(",") if email.strip()]
 
 client = meilisearch.Client(MEILI_URL, MEILI_MASTER_KEY)
 
@@ -51,6 +52,11 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
         raise HTTPException(status_code=401, detail="Token has expired")
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid token")
+
+def get_admin_user(current_user: dict = Depends(get_current_user)) -> dict:
+    if current_user.get("email") not in ADMIN_EMAILS:
+        raise HTTPException(status_code=403, detail="Not enough permissions. Admin access required.")
+    return current_user
 
 # 2. Convert JS dummy data into Python dictionaries
 DUMMY_DATA = [
@@ -362,7 +368,7 @@ def search_problems(
     return search_results.get("hits", [])
 
 @app.post("/problems", status_code=201, response_model=Problem)
-async def add_problem(problem_in: ProblemCreate, current_user: dict = Depends(get_current_user)):
+async def add_problem(problem_in: ProblemCreate, current_user: dict = Depends(get_admin_user)):
     """
     Add a new DSA problem to the search index.
     """
@@ -407,7 +413,7 @@ async def add_problem(problem_in: ProblemCreate, current_user: dict = Depends(ge
         raise HTTPException(status_code=500, detail="Database connection failed")
 
 @app.put("/problems/{problem_id}", response_model=Problem)
-async def update_problem(problem_id: int, problem_in: ProblemUpdate, current_user: dict = Depends(get_current_user)):
+async def update_problem(problem_id: int, problem_in: ProblemUpdate, current_user: dict = Depends(get_admin_user)):
     """
     Update an existing DSA problem.
     """
@@ -449,7 +455,7 @@ async def update_problem(problem_id: int, problem_in: ProblemUpdate, current_use
         raise HTTPException(status_code=500, detail="Database connection failed")
 
 @app.delete("/problems/{problem_id}", status_code=204)
-def delete_problem(problem_id: int, current_user: dict = Depends(get_current_user)):
+def delete_problem(problem_id: int, current_user: dict = Depends(get_admin_user)):
     """
     Delete a DSA problem from the search index.
     """
@@ -510,13 +516,18 @@ async def google_auth_callback(code: str = Query(..., description="Authorization
             
         user_info = user_info_response.json()
         
+        # Determine user role based on ADMIN_EMAILS
+        user_email = user_info.get("email")
+        role = "admin" if user_email in ADMIN_EMAILS else "user"
+
         # Create JWT session token
         expire = datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRATION_HOURS)
         jwt_payload = {
             "sub": user_info.get("id"),
-            "email": user_info.get("email"),
+            "email": user_email,
             "name": user_info.get("name"),
             "picture": user_info.get("picture"),
+            "role": role,
             "exp": expire
         }
         

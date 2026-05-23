@@ -25,7 +25,7 @@ This is the backend service for the DSA based search engine, built with **Python
    ```bash
    cp .env.example .env
    ```
-   Update `.env` with your secure `MEILI_MASTER_KEY` and ensure `MEILI_URL` points to your Meilisearch instance. *(Note: Meilisearch requires the master key to be at least 16 bytes).* Also, configure your `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`, `JWT_SECRET`, and `FRONTEND_URL` for OAuth and authentication functionality.
+   Update `.env` with your secure `MEILI_MASTER_KEY` and ensure `MEILI_URL` points to your Meilisearch instance. *(Note: Meilisearch requires the master key to be at least 16 bytes).* Also, configure your `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`, `JWT_SECRET`, `FRONTEND_URL`, and `ADMIN_EMAILS` for OAuth, authentication, and RBAC functionality.
 
 3. **Start Meilisearch (via Docker)**
    Run the following command to start a local Meilisearch instance. Ensure the master key matches the one in your `.env` file:
