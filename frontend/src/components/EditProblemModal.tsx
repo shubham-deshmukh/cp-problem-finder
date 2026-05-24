@@ -33,7 +33,7 @@ const EditProblemModal: React.FC<EditProblemModalProps> = ({ isOpen, isLoading =
         setIsFetchingTags(true);
         try {
           const token = localStorage.getItem('authToken');
-          const response = await fetch('http://127.0.0.1:8000/tags', {
+          const response = await fetch(`${import.meta.env.VITE_API_URL}/tags`, {
             headers: token ? { 'Authorization': `Bearer ${token}` } : {}
           });
           if (!response.ok) throw new Error('Failed to fetch tags');

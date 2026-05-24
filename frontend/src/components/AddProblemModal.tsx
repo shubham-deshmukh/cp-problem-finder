@@ -30,7 +30,7 @@ const AddProblemModal: React.FC<AddProblemModalProps> = ({ isOpen, isLoading = f
         try {
           // Note: Update this URL to match your actual backend API endpoint for tags
           const token = localStorage.getItem('authToken');
-          const response = await fetch('http://127.0.0.1:8000/tags', {
+          const response = await fetch(`${import.meta.env.VITE_API_URL}/tags`, {
             headers: token ? { 'Authorization': `Bearer ${token}` } : {}
           });
           if (!response.ok) throw new Error('Failed to fetch tags');

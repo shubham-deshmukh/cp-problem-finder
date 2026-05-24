@@ -52,7 +52,7 @@ function App() {
     queryFn: async ({ signal }) => {
       const encodedQuery = encodeURIComponent(debouncedSearchValue);
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`http://127.0.0.1:8000/search?q=${encodedQuery}&limit=8&offset=0`, { 
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/search?q=${encodedQuery}&limit=8&offset=0`, { 
         signal,
         headers: token ? { 'Authorization': `Bearer ${token}` } : {}
       });
@@ -75,7 +75,7 @@ function App() {
   const addMutation = useMutation({
     mutationFn: async (problemData: ProblemData) => {
         const token = localStorage.getItem('authToken');
-        const response = await fetch('http://127.0.0.1:8000/problems', {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/problems`, {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
@@ -122,7 +122,7 @@ function App() {
   const updateMutation = useMutation({
     mutationFn: async ({ id, updatedData }: { id: number, updatedData: any }) => {
         const token = localStorage.getItem('authToken');
-        const response = await fetch(`http://127.0.0.1:8000/problems/${id}`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/problems/${id}`, {
             method: 'PUT',
             headers: { 
               'Content-Type': 'application/json',
@@ -163,7 +163,7 @@ function App() {
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
         const token = localStorage.getItem('authToken');
-        const response = await fetch(`http://127.0.0.1:8000/problems/${id}`, { 
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/problems/${id}`, { 
           method: 'DELETE',
           headers: token ? { 'Authorization': `Bearer ${token}` } : {}
         });

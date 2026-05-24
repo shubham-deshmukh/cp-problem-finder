@@ -9,7 +9,7 @@ export function LoginPage() {
     try {
       // Redirect directly to the FastAPI backend to start the OAuth flow
       // Ensure this URL matches your actual FastAPI server address
-      window.location.href = 'http://127.0.0.1:8000/auth/login';
+      window.location.href = `${import.meta.env.VITE_API_URL}/auth/login`;
     } catch (error) {
       console.error('Login failed:', error);
     } finally {
