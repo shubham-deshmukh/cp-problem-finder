@@ -4,6 +4,7 @@ import styles from './UserDropdown.module.css';
 
 export function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const logout = useAuthStore((state) => state.logout);
   const user = useAuthStore((state) => state.user);
@@ -39,8 +40,14 @@ export function UserDropdown() {
         onClick={() => setIsOpen(!isOpen)}
         title="User menu"
       >
-        {user?.picture ? (
-          <img src={user.picture} alt="Profile" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+        {user?.picture && !imageError ? (
+          <img 
+            src={user.picture} 
+            alt="Profile" 
+            style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} 
+            referrerPolicy="no-referrer"
+            onError={() => setImageError(true)}
+          />
         ) : (
           <div className={styles['profile-avatar']}>{userInitial}</div>
         )}
@@ -49,8 +56,14 @@ export function UserDropdown() {
       {isOpen && (
         <div className={styles['dropdown-card']}>
           <div className={styles['user-info']}>
-            {user?.picture ? (
-              <img src={user.picture} alt="Profile" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
+            {user?.picture && !imageError ? (
+              <img 
+                src={user.picture} 
+                alt="Profile" 
+                style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} 
+                referrerPolicy="no-referrer"
+                onError={() => setImageError(true)}
+              />
             ) : (
               <div className={styles['user-avatar']}>{userInitial}</div>
             )}
