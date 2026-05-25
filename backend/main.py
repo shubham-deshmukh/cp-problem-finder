@@ -38,7 +38,11 @@ JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 JWT_EXPIRATION_HOURS = int(os.getenv("JWT_EXPIRATION_HOURS", "24"))
 # Strip any literal quotes that Docker might pass, and remove accidental trailing slashes
 FRONTEND_URL = os.getenv("FRONTEND_URL", "").strip(' "\'').rstrip('/')
-ADMIN_EMAILS = [email.strip(' "\'') for email in os.getenv("ADMIN_EMAILS", "").split(",") if email.strip(' "\'')]
+
+raw_admin_emails = os.getenv("ADMIN_EMAILS", "")
+# Robustly clean any brackets, quotes, and whitespace, then lowercase
+cleaned_emails = raw_admin_emails.replace('"', '').replace("'", "").replace("[", "").replace("]", "")
+ADMIN_EMAILS = [email.strip().lower() for email in cleaned_emails.split(",") if email.strip()]
 
 client = meilisearch.Client(MEILI_URL, MEILI_MASTER_KEY)
 
@@ -55,7 +59,7 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
         raise HTTPException(status_code=401, detail="Invalid token")
 
 def get_admin_user(current_user: dict = Depends(get_current_user)) -> dict:
-    if current_user.get("email") not in ADMIN_EMAILS:
+    if current_user.get("email", "").lower() not in ADMIN_EMAILS:
         raise HTTPException(status_code=403, detail="Not enough permissions. Admin access required.")
     return current_user
 
@@ -529,7 +533,7 @@ async def google_auth_callback(code: str = Query(..., description="Authorization
         user_info = user_info_response.json()
         
         # Determine user role based on ADMIN_EMAILS
-        user_email = user_info.get("email")
+        user_email = user_info.get("email", "").lower()
         role = "admin" if user_email in ADMIN_EMAILS else "user"
 
         # Create JWT session token
