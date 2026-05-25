@@ -1,0 +1,28 @@
+# Environment Variables
+.env
+.env.*
+
+# Python Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environments
+venv/
+.venv/
+env/
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+
+# Testing and Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local Data and Logs
+meili_data/
+*.log
+*.sqlite3
