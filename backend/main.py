@@ -29,14 +29,15 @@ MEILI_URL = os.getenv("MEILI_URL", "http://127.0.0.1:7700")
 MEILI_MASTER_KEY = os.getenv("MEILI_MASTER_KEY", "")
 INDEX_NAME = os.getenv("INDEX_NAME", "dsa_problems")
 
-GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
-GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
-GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "")
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "").strip(' "\'')
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "").strip(' "\'')
+GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "").strip(' "\'')
 
 JWT_SECRET = os.getenv("JWT_SECRET", "your_super_secret_jwt_key_here")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 JWT_EXPIRATION_HOURS = int(os.getenv("JWT_EXPIRATION_HOURS", "24"))
-FRONTEND_URL = os.getenv("FRONTEND_URL", "")
+# Strip any literal quotes that Docker might pass, and remove accidental trailing slashes
+FRONTEND_URL = os.getenv("FRONTEND_URL", "").strip(' "\'').rstrip('/')
 ADMIN_EMAILS = [email.strip() for email in os.getenv("ADMIN_EMAILS", "").split(",") if email.strip()]
 
 client = meilisearch.Client(MEILI_URL, MEILI_MASTER_KEY)
@@ -483,8 +484,15 @@ def login_via_google():
     Redirect to Google OAuth 2.0 authorization endpoint.
     """
     google_auth_url = "https://accounts.google.com/o/oauth2/v2/auth"
-    scope = "openid email profile"
-    url = f"{google_auth_url}?response_type=code&client_id={GOOGLE_CLIENT_ID}&redirect_uri={urllib.parse.quote(GOOGLE_REDIRECT_URI)}&scope={urllib.parse.quote(scope)}&access_type=offline&prompt=consent"
+    params = {
+        "response_type": "code",
+        "client_id": GOOGLE_CLIENT_ID,
+        "redirect_uri": GOOGLE_REDIRECT_URI,
+        "scope": "openid email profile",
+        "access_type": "offline",
+        "prompt": "consent"
+    }
+    url = f"{google_auth_url}?{urllib.parse.urlencode(params)}"
     return RedirectResponse(url)
 
 @app.get("/auth/callback", tags=["Authentication"])
