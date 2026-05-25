@@ -38,7 +38,7 @@ JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 JWT_EXPIRATION_HOURS = int(os.getenv("JWT_EXPIRATION_HOURS", "24"))
 # Strip any literal quotes that Docker might pass, and remove accidental trailing slashes
 FRONTEND_URL = os.getenv("FRONTEND_URL", "").strip(' "\'').rstrip('/')
-ADMIN_EMAILS = [email.strip() for email in os.getenv("ADMIN_EMAILS", "").split(",") if email.strip()]
+ADMIN_EMAILS = [email.strip(' "\'') for email in os.getenv("ADMIN_EMAILS", "").split(",") if email.strip(' "\'')]
 
 client = meilisearch.Client(MEILI_URL, MEILI_MASTER_KEY)
 
