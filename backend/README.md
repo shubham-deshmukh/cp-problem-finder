@@ -17,7 +17,7 @@ This is the backend service for the DSA based search engine, built with **Python
 1. **Install Python Dependencies**
    Navigate to the `backend` directory and install the required packages. (Consider using a virtual environment):
    ```bash
-   pip install fastapi uvicorn meilisearch python-dotenv PyJWT
+   pip install -r requirements.txt
    ```
 
 2. **Configure Environment Variables**

@@ -31,12 +31,12 @@ INDEX_NAME = os.getenv("INDEX_NAME", "dsa_problems")
 
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
-GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "http://127.0.0.1:8000/auth/callback")
+GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "")
 
 JWT_SECRET = os.getenv("JWT_SECRET", "your_super_secret_jwt_key_here")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 JWT_EXPIRATION_HOURS = int(os.getenv("JWT_EXPIRATION_HOURS", "24"))
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "")
 ADMIN_EMAILS = [email.strip() for email in os.getenv("ADMIN_EMAILS", "").split(",") if email.strip()]
 
 client = meilisearch.Client(MEILI_URL, MEILI_MASTER_KEY)

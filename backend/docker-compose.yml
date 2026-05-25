@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    restart: always
+    environment:
+      # Tell FastAPI to talk to the internal Meilisearch container
+      - MEILI_URL=http://meilisearch:7700
+      - MEILI_MASTER_KEY=${MEILI_MASTER_KEY}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI}
+      - JWT_SECRET=${JWT_SECRET}
+      - FRONTEND_URL=${FRONTEND_URL}
+      - ADMIN_EMAILS=${ADMIN_EMAILS}
+    depends_on:
+      - meilisearch
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.7
+    restart: always
+    environment:
+      - MEILI_MASTER_KEY=${MEILI_MASTER_KEY}
+    volumes:
+      - ./meili_data:/meili_data
+
+  caddy:
+    image: caddy:2
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - backend
+
+volumes:
+  caddy_data:
+  caddy_config:

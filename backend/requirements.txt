@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+meilisearch
+python-dotenv
+httpx
+pydantic
+curl_cffi
+PyJWT
