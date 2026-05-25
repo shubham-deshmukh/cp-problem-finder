@@ -9,9 +9,18 @@ export function LoginPage() {
     try {
       // Redirect directly to the FastAPI backend to start the OAuth flow
       // Ensure this URL matches your actual FastAPI server address
-      window.location.href = `${import.meta.env.VITE_API_URL}/auth/login`;
+      
+      // Use window.top to break out of iframes (like those from URL cloaking services),
+      // as OAuth providers like Google will block rendering inside an iframe.
+      if (window.top) {
+        window.top.location.href = `${import.meta.env.VITE_API_URL}/auth/login`;
+      } else {
+        window.location.href = `${import.meta.env.VITE_API_URL}/auth/login`;
+      }
     } catch (error) {
       console.error('Login failed:', error);
+      // Fallback in case accessing window.top is strictly blocked
+      window.location.href = `${import.meta.env.VITE_API_URL}/auth/login`;
     } finally {
       setIsLoading(false);
     }
