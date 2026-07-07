@@ -450,8 +450,9 @@ async def add_problem(problem_in: ProblemCreate, current_user: dict = Depends(ge
 
     try:
         index = client.index(index_name)
-        # Add document to Meilisearch
+        # Add document to Meilisearch and wait for task completion
         response = index.add_documents([problem_doc])
+        client.wait_for_task(response.task_uid)
         # Return only the created problem document for exact consistency with the search API
         return problem_doc
     except MeilisearchCommunicationError:
@@ -490,7 +491,8 @@ async def update_problem(problem_id: int, problem_in: ProblemUpdate, current_use
     update_data["id"] = problem_id
     
     try:
-        index.update_documents([update_data])
+        task = index.update_documents([update_data])
+        client.wait_for_task(task.task_uid)
         # Return the merged document simulating Meilisearch's partial update
         updated_doc = {**existing, **update_data}
         return updated_doc
@@ -513,8 +515,9 @@ def delete_problem(problem_id: int, current_user: dict = Depends(get_admin_user)
         # Verify the problem exists before attempting to delete
         index.get_document(problem_id)
         
-        # Queue the deletion task in Meilisearch
-        index.delete_document(problem_id)
+        # Queue the deletion task in Meilisearch and wait for it to complete
+        task = index.delete_document(problem_id)
+        client.wait_for_task(task.task_uid)
     except MeilisearchApiError:
         raise HTTPException(status_code=404, detail="Problem not found")
     except MeilisearchCommunicationError:
