@@ -2,7 +2,8 @@ from contextlib import asynccontextmanager
 import re
 import html
 import urllib.parse
-from fastapi import FastAPI, Query, HTTPException, Depends, Request
+from fastapi import FastAPI, Query, HTTPException, Depends, Request, BackgroundTasks
+import uuid
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -46,9 +47,11 @@ ADMIN_EMAILS = [email.strip().lower() for email in cleaned_emails.split(",") if 
 
 client = meilisearch.Client(MEILI_URL, MEILI_MASTER_KEY)
 
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
-def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
+def get_current_user(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)) -> dict:
+    if not credentials:
+        raise HTTPException(status_code=401, detail="Authentication required")
     token = credentials.credentials
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
@@ -57,6 +60,28 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
         raise HTTPException(status_code=401, detail="Token has expired")
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid token")
+
+def cleanup_guest_indices():
+    """
+    Finds and deletes guest indices older than 15 minutes (900 seconds) to prevent bloat.
+    """
+    try:
+        indices = client.get_indexes()
+        current_time = int(time.time())
+        for idx in indices:
+            uid = idx.uid
+            if uid.startswith("dsa_problems_guest_"):
+                parts = uid.split("_")
+                if len(parts) >= 5: # ['dsa', 'problems', 'guest', 'timestamp', 'uuid']
+                    try:
+                        timestamp = int(parts[3])
+                        if current_time - timestamp > 900: # 15 minutes
+                            client.delete_index(uid)
+                            logger.info(f"Automatically cleaned up expired guest index: {uid}")
+                    except ValueError:
+                        pass
+    except Exception as e:
+        logger.error(f"Error during guest index cleanup: {e}")
 
 def get_admin_user(current_user: dict = Depends(get_current_user)) -> dict:
     email = current_user.get("email", "").lower()
@@ -344,7 +369,8 @@ def search_problems(
     offset: int = Query(0, description="Number of results to skip"),
     platform: Optional[str] = Query(None, description="Filter by platform (e.g., Leetcode)"),
     difficulty: Optional[str] = Query(None, description="Filter by difficulty (e.g., High)"),
-    tag: Optional[str] = Query(None, description="Filter by a specific tag")
+    tag: Optional[str] = Query(None, description="Filter by a specific tag"),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
 ):
     """
     Search for DSA problems with optional faceting/filtering.
@@ -370,8 +396,17 @@ def search_problems(
     if filter_conditions:
         search_params["filter"] = filter_conditions
 
+    # Resolve target index dynamically if credentials are provided
+    index_name = INDEX_NAME
+    if credentials:
+        try:
+            payload = jwt.decode(credentials.credentials, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+            index_name = payload.get("index_name", INDEX_NAME)
+        except Exception:
+            pass
+
     # Perform the search
-    index = client.index(INDEX_NAME)
+    index = client.index(index_name)
     search_results = index.search(q, search_params)
     
     # Return only the 'hits' to prevent sending Meilisearch metadata to the client
@@ -383,9 +418,10 @@ async def add_problem(problem_in: ProblemCreate, current_user: dict = Depends(ge
     Add a new DSA problem to the search index.
     """
     link_str = str(problem_in.link)
+    index_name = current_user.get("index_name", INDEX_NAME)
     
     try:
-        index = client.index(INDEX_NAME)
+        index = client.index(index_name)
         # Check if the problem already exists by filtering for the exact link
         existing_problems = index.search("", {"filter": [f"link = '{link_str}'"], "limit": 1})
         if existing_problems.get("hits"):
@@ -413,7 +449,7 @@ async def add_problem(problem_in: ProblemCreate, current_user: dict = Depends(ge
     }
 
     try:
-        index = client.index(INDEX_NAME)
+        index = client.index(index_name)
         # Add document to Meilisearch
         response = index.add_documents([problem_doc])
         # Return only the created problem document for exact consistency with the search API
@@ -427,8 +463,9 @@ async def update_problem(problem_id: int, problem_in: ProblemUpdate, current_use
     """
     Update an existing DSA problem.
     """
+    index_name = current_user.get("index_name", INDEX_NAME)
     try:
-        index = client.index(INDEX_NAME)
+        index = client.index(index_name)
         doc_obj = index.get_document(problem_id)
         # Meilisearch returns a Document object; convert it to a dictionary
         existing = doc_obj.__dict__ if hasattr(doc_obj, "__dict__") else doc_obj
@@ -469,8 +506,9 @@ def delete_problem(problem_id: int, current_user: dict = Depends(get_admin_user)
     """
     Delete a DSA problem from the search index.
     """
+    index_name = current_user.get("index_name", INDEX_NAME)
     try:
-        index = client.index(INDEX_NAME)
+        index = client.index(index_name)
         
         # Verify the problem exists before attempting to delete
         index.get_document(problem_id)
@@ -484,17 +522,36 @@ def delete_problem(problem_id: int, current_user: dict = Depends(get_admin_user)
         raise HTTPException(status_code=500, detail="Database connection failed")
 
 @app.get("/auth/guest", tags=["Authentication"])
-def login_as_guest(request: Request):
+def login_as_guest(request: Request, background_tasks: BackgroundTasks):
     """
-    Authenticate the user as a guest with admin privileges.
+    Authenticate the user as a guest with admin privileges and initialize an isolated sandbox index.
     """
+    # Trigger cleanup of expired guest sandbox indices
+    background_tasks.add_task(cleanup_guest_indices)
+
+    # Generate unique sandbox index name containing creation timestamp and session ID
+    timestamp = int(time.time())
+    session_id = uuid.uuid4().hex
+    index_name = f"dsa_problems_guest_{timestamp}_{session_id}"
+
+    # Create guest index and seed dummy data
+    try:
+        index = client.index(index_name)
+        index.add_documents(DUMMY_DATA)
+        index.update_searchable_attributes(["title", "tags", "platform"])
+        index.update_filterable_attributes(["platform", "difficulty", "tags", "isNew", "link"])
+    except Exception as e:
+        logger.error(f"Failed to initialize guest sandbox index {index_name}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to initialize guest sandbox index")
+
     expire = datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRATION_HOURS)
     jwt_payload = {
-        "sub": "guest_id_12345",
+        "sub": f"guest_id_{session_id}",
         "email": "guest@example.com",
         "name": "Guest Admin",
         "picture": None,
         "role": "admin",
+        "index_name": index_name,
         "exp": expire
     }
     access_token = jwt.encode(jwt_payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
@@ -581,3 +638,17 @@ async def google_auth_callback(code: str = Query(..., description="Authorization
         # Redirect back to the frontend with the token
         redirect_url = f"{FRONTEND_URL}?token={access_token}"
         return RedirectResponse(url=redirect_url)
+
+@app.post("/auth/logout", tags=["Authentication"])
+def logout(current_user: dict = Depends(get_current_user)):
+    """
+    Optional logout endpoint. If the user is a guest, delete their guest index immediately.
+    """
+    index_name = current_user.get("index_name")
+    if index_name and index_name.startswith("dsa_problems_guest_"):
+        try:
+            client.delete_index(index_name)
+            logger.info(f"Deleted guest index on logout: {index_name}")
+        except Exception as e:
+            logger.error(f"Failed to delete guest index {index_name} on logout: {e}")
+    return {"message": "Logged out successfully"}

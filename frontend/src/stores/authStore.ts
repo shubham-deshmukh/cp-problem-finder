@@ -12,7 +12,7 @@ interface AuthState {
   isAuthenticated: boolean;
   user: User | null;
   login: (token: string) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 const getUserFromToken = (token: string | null): User | null => {
@@ -41,7 +41,20 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isAuthenticated: true, user: getUserFromToken(token) });
   },
   
-  logout: () => {
+  logout: async () => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      try {
+        await fetch(`${import.meta.env.VITE_API_URL}/auth/logout`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+      } catch (error) {
+        console.error('Failed to notify backend on logout:', error);
+      }
+    }
     localStorage.removeItem('authToken');
     set({ isAuthenticated: false, user: null });
   },
