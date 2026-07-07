@@ -108,8 +108,8 @@ function App() {
         queryClient.setQueryData(['problems', debouncedSearchValue], (old: Problem[] | undefined) => {
             return old ? [newProblem, ...old] : [newProblem];
         });
-        // We comment out immediate invalidation to prevent fetching stale data before the search engine indexes
-        // queryClient.invalidateQueries({ queryKey: ['problems'] });
+        // We invalidate the cache to ensure all query keys refetch fresh data
+        queryClient.invalidateQueries({ queryKey: ['problems'] });
         setIsAddProblemModalOpen(false);
         toast.success('Problem added successfully!');
     },
@@ -149,8 +149,8 @@ function App() {
         queryClient.setQueryData(['problems', debouncedSearchValue], (old: Problem[] | undefined) => {
             return old ? old.map(p => p.id === updatedProblem.id ? updatedProblem : p) : [];
         });
-        // We comment out immediate invalidation to prevent fetching stale data before the search engine indexes
-        // queryClient.invalidateQueries({ queryKey: ['problems'] });
+        // We invalidate the cache to ensure all query keys refetch fresh data
+        queryClient.invalidateQueries({ queryKey: ['problems'] });
         setEditingProblem(null);
         toast.success('Problem updated successfully!');
     },
@@ -185,8 +185,8 @@ function App() {
         queryClient.setQueryData(['problems', debouncedSearchValue], (old: Problem[] | undefined) => {
             return old ? old.filter(p => p.id !== deletedId) : [];
         });
-        // We comment out immediate invalidation to prevent fetching stale data before the search engine indexes
-        // queryClient.invalidateQueries({ queryKey: ['problems'] });
+        // We invalidate the cache to ensure all query keys refetch fresh data
+        queryClient.invalidateQueries({ queryKey: ['problems'] });
         toast.success('Problem deleted successfully!');
     },
     onError: (error) => {

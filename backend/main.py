@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 import re
 import html
 import urllib.parse
-from fastapi import FastAPI, Query, HTTPException, Depends, Request, BackgroundTasks
+from fastapi import FastAPI, Query, HTTPException, Depends, Request, BackgroundTasks, Response
 import uuid
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import RedirectResponse
@@ -364,6 +364,7 @@ def get_tags():
 
 @app.get("/search", response_model=List[Problem])
 def search_problems(
+    response: Response,
     q: str = Query("", description="The main search query string"),
     limit: int = Query(20, description="Max results to return"),
     offset: int = Query(0, description="Number of results to skip"),
@@ -375,6 +376,9 @@ def search_problems(
     """
     Search for DSA problems with optional faceting/filtering.
     """
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
     # Construct the filter string for Meilisearch
     filter_conditions = []
     
@@ -450,8 +454,9 @@ async def add_problem(problem_in: ProblemCreate, current_user: dict = Depends(ge
 
     try:
         index = client.index(index_name)
-        # Add document to Meilisearch
+        # Add document to Meilisearch and wait for task completion
         response = index.add_documents([problem_doc])
+        client.wait_for_task(response.task_uid)
         # Return only the created problem document for exact consistency with the search API
         return problem_doc
     except MeilisearchCommunicationError:
@@ -490,7 +495,8 @@ async def update_problem(problem_id: int, problem_in: ProblemUpdate, current_use
     update_data["id"] = problem_id
     
     try:
-        index.update_documents([update_data])
+        task = index.update_documents([update_data])
+        client.wait_for_task(task.task_uid)
         # Return the merged document simulating Meilisearch's partial update
         updated_doc = {**existing, **update_data}
         return updated_doc
@@ -513,8 +519,9 @@ def delete_problem(problem_id: int, current_user: dict = Depends(get_admin_user)
         # Verify the problem exists before attempting to delete
         index.get_document(problem_id)
         
-        # Queue the deletion task in Meilisearch
-        index.delete_document(problem_id)
+        # Queue the deletion task in Meilisearch and wait for it to complete
+        task = index.delete_document(problem_id)
+        client.wait_for_task(task.task_uid)
     except MeilisearchApiError:
         raise HTTPException(status_code=404, detail="Problem not found")
     except MeilisearchCommunicationError:
@@ -537,9 +544,15 @@ def login_as_guest(request: Request, background_tasks: BackgroundTasks):
     # Create guest index and seed dummy data
     try:
         index = client.index(index_name)
-        index.add_documents(DUMMY_DATA)
-        index.update_searchable_attributes(["title", "tags", "platform"])
-        index.update_filterable_attributes(["platform", "difficulty", "tags", "isNew", "link"])
+        task_docs = index.add_documents(DUMMY_DATA)
+        task_searchable = index.update_searchable_attributes(["title", "tags", "platform"])
+        task_filterable = index.update_filterable_attributes(["platform", "difficulty", "tags", "isNew", "link"])
+        
+        # Wait for all operations to be indexed/configured before returning to the frontend.
+        # This prevents a race condition where the frontend queries the new index before indexing completes.
+        client.wait_for_task(task_docs.task_uid)
+        client.wait_for_task(task_searchable.task_uid)
+        client.wait_for_task(task_filterable.task_uid)
     except Exception as e:
         logger.error(f"Failed to initialize guest sandbox index {index_name}: {e}")
         raise HTTPException(status_code=500, detail="Failed to initialize guest sandbox index")
