@@ -57,6 +57,13 @@ This is the backend service for the CP Problem Finder, built with **Python**, **
     - `tag` (string): Filter by a specific topic tag (e.g., `dynamic programming`).
 - **`GET /auth/login`** - Initiates the Google OAuth 2.0 flow.
 - **`GET /auth/callback`** - Handles the callback from Google OAuth 2.0 and returns user info.
+- **`GET /auth/guest`** - Authenticates the user in Guest Mode. This endpoint automatically creates a session-isolated Meilisearch index, seeds it with standard CP problems, and signs the index namespace into the guest's JWT claims.
+- **`POST /auth/logout`** - Logs out the user. If the caller is authenticated as a guest, their isolated sandbox index is deleted immediately.
+
+### 🔒 Sandbox Guest Mode & Session Isolation
+The application features an isolated database sandbox for guest users:
+- **Index Isolation**: Guest users get an individual, session-specific index (`dsa_problems_guest_{timestamp}_{uuid}`) in Meilisearch. Their modifications (adding, editing, deleting problems) are completely separated from the main search database and other concurrent guest sessions.
+- **Automatic Cleanup**: A background task automatically sweeps and deletes guest sandbox indices that are older than 15 minutes. Additionally, logging out immediately deletes the active sandbox index from the database.
 
 ## Interactive API Documentation
 Once the server is running, navigate to http://127.0.0.1:8000/docs in your browser to access the interactive Swagger UI. You can test all search queries and filters directly from this interface!

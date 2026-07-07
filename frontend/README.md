@@ -5,6 +5,7 @@ A fast and intuitive search engine frontend for Competitive Programming (CP) and
 ## 🚀 Features
 
 * **Real-time Search:** Filter problems instantly by title or tags (e.g., dynamic programming, graphs, greedy).
+* **Sandboxed Guest Mode**: Guests and recruiters can log in with a single click and have full access to add, edit, or delete problems inside an isolated, temporary database sandbox.
 * **Theme Support:** Toggle between Dark and Light modes for a comfortable viewing experience.
 * **Rich Problem Table:** View essential problem information at a glance, including Platform icons, Title, Color-coded Tags, and Difficulty.
 * **Modern UI/UX:** Clean, responsive design built with custom CSS, featuring clearable search inputs and a Floating Action Button (FAB).
@@ -41,7 +42,4 @@ A fast and intuitive search engine frontend for Competitive Programming (CP) and
 
 * **Advanced Filtering:** Introduce dedicated dropdowns to filter problems specifically by Platform (e.g., LeetCode, Codeforces) and Difficulty (Easy, Medium, Hard).
 * **Pagination & Sorting:** Implement pagination or infinite scrolling for the problem table, along with column sorting.
-* **User Authentication:** Add login/registration to support personalized problem lists, favorites, and user profiles.
-
-* **Global State Management:** Integrate Redux, Zustand, or React Context to manage complex states as the app grows.
 * **Auto-suggestions:** Add intelligent auto-complete/suggestions to the search bar based on available tags in the database.

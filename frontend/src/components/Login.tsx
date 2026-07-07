@@ -26,6 +26,22 @@ export function LoginPage() {
     }
   };
 
+  const handleGuestLogin = async () => {
+    setIsLoading(true);
+    try {
+      if (window.top) {
+        window.top.location.href = `${import.meta.env.VITE_API_URL}/auth/guest`;
+      } else {
+        window.location.href = `${import.meta.env.VITE_API_URL}/auth/guest`;
+      }
+    } catch (error) {
+      console.error('Guest login failed:', error);
+      window.location.href = `${import.meta.env.VITE_API_URL}/auth/guest`;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className={styles['login-container']}>
       <div className={styles['login-background']}>
@@ -68,12 +84,22 @@ export function LoginPage() {
           <span>or</span>
         </div>
 
-        {/* Security Message */}
-        <div className={styles['security-message']}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" fill="currentColor"/>
-          </svg>
-          Secure authentication by Google
+        {/* Guest Login Container (Replacing Security Message) */}
+        <div className={styles['guest-login-container']}>
+          <button
+            className={styles['guest-login-btn']}
+            onClick={handleGuestLogin}
+            disabled={isLoading}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            Continue as guest
+          </button>
+          <p className={styles['guest-subtitle']}>
+            Want to explore all features? Try the Demo Workspace.
+          </p>
         </div>
 
         {/* Features Section */}
