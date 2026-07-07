@@ -14,6 +14,7 @@ const AddProblemModal: React.FC<AddProblemModalProps> = ({ isOpen, isLoading = f
   const [platform, setPlatform] = useState('Leetcode');
   const [difficulty, setDifficulty] = useState<DifficultyLevel>('Easy');
   const [tags, setTags] = useState<string[]>([]);
+  const [notes, setNotes] = useState('');
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [isFetchingTags, setIsFetchingTags] = useState(false);
 
@@ -24,6 +25,7 @@ const AddProblemModal: React.FC<AddProblemModalProps> = ({ isOpen, isLoading = f
       setPlatform('Leetcode');
       setDifficulty('Easy');
       setTags([]);
+      setNotes('');
 
       const fetchTags = async () => {
         setIsFetchingTags(true);
@@ -68,7 +70,8 @@ const AddProblemModal: React.FC<AddProblemModalProps> = ({ isOpen, isLoading = f
       link,
       platform,
       difficulty,
-      tags
+      tags,
+      notes
     };
     
     onSubmit(newProblem);
@@ -143,6 +146,19 @@ const AddProblemModal: React.FC<AddProblemModalProps> = ({ isOpen, isLoading = f
               ))}
             </select>
           </div>
+          </div>
+
+          <div className={styles['form-group']}>
+            <label htmlFor="notes">Notes / Hints (Markdown supported)</label>
+            <textarea 
+              id="notes" 
+              className={styles['form-control']} 
+              style={{ minHeight: '80px', resize: 'vertical' }}
+              value={notes} 
+              onChange={(e) => setNotes(e.target.value)} 
+              placeholder="e.g. Think dynamic programming, count subproblems carefully." 
+              disabled={isLoading}
+            />
           </div>
 
           <div className={styles['modal-actions']}>

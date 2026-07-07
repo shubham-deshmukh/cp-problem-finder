@@ -6,10 +6,11 @@ interface ProblemTableProps {
   problems: Problem[];
   onEdit?: (problem: Problem) => void;
   onDelete?: (id: number) => void;
+  onShowNotes?: (problem: Problem) => void;
   isAdmin?: boolean;
 }
 
-export function ProblemTable({ problems, onEdit, onDelete, isAdmin }: ProblemTableProps) {
+export function ProblemTable({ problems, onEdit, onDelete, onShowNotes, isAdmin }: ProblemTableProps) {
   return (
     <div className={styles['table-wrapper']}>
       <table className={styles['problems-table']}>
@@ -43,9 +44,23 @@ export function ProblemTable({ problems, onEdit, onDelete, isAdmin }: ProblemTab
                 </div>
               </td>
               <td className={styles['col-title']}>
-                <a href={problem.link} target="_blank" rel="noopener noreferrer" className={styles['problem-title']}>
-                  {problem.title}
-                </a>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <a href={problem.link} target="_blank" rel="noopener noreferrer" className={styles['problem-title']}>
+                    {problem.title}
+                  </a>
+                  {(problem.notes || isAdmin) && (
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onShowNotes?.(problem);
+                      }}
+                      className={`${styles['note-trigger-btn']} ${problem.notes ? styles['has-notes'] : ''}`}
+                      title={problem.notes ? "View Notes" : "Add Notes"}
+                    >
+                      📝
+                    </button>
+                  )}
+                </div>
               </td>
               <td className={styles['col-tags']}>
                 <div className={styles['tags-container']}>

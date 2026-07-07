@@ -133,6 +133,7 @@ class ProblemCreate(BaseModel):
     platform: str
     difficulty: str
     tags: List[str]
+    notes: Optional[str] = ""
 
     @field_validator('platform')
     @classmethod
@@ -164,6 +165,7 @@ class ProblemUpdate(BaseModel):
     platform: Optional[str] = None
     difficulty: Optional[str] = None
     tags: Optional[List[str]] = None
+    notes: Optional[str] = None
 
     @field_validator('platform')
     @classmethod
@@ -307,6 +309,7 @@ class Problem(BaseModel):
     link: str
     tags: List[str]
     difficulty: str
+    notes: Optional[str] = ""
     isNew: Optional[bool] = False
 
 # 3. Define Startup Logic using Lifespan Context
@@ -449,6 +452,7 @@ async def add_problem(problem_in: ProblemCreate, current_user: dict = Depends(ge
         "link": link_str,
         "tags": problem_in.tags,
         "difficulty": problem_in.difficulty,
+        "notes": problem_in.notes or "",
         "isNew": True
     }
 

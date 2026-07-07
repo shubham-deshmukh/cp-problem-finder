@@ -11,6 +11,7 @@ import EditProblemModal from './components/EditProblemModal';
 import toast, { Toaster } from 'react-hot-toast';
 import { LoginPage } from './components/Login';
 import { useAuthStore } from './stores/authStore';
+import { NotesDrawer } from './components/NotesDrawer';
 
 function App() {
   const [searchValue, setSearchValue] = useState('');
@@ -18,6 +19,7 @@ function App() {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isAddProblemModalOpen, setIsAddProblemModalOpen] = useState(false);
   const [editingProblem, setEditingProblem] = useState<Problem | null>(null);
+  const [selectedNotesProblem, setSelectedNotesProblem] = useState<Problem | null>(null);
 
   // Access the QueryClient to invalidate cache after mutations
   const queryClient = useQueryClient();
@@ -152,6 +154,15 @@ function App() {
         // We invalidate the cache to ensure all query keys refetch fresh data
         queryClient.invalidateQueries({ queryKey: ['problems'] });
         setEditingProblem(null);
+        
+        // Sync selected notes problem if it's currently open
+        setSelectedNotesProblem((current) => {
+          if (current && current.id === updatedProblem.id) {
+            return updatedProblem;
+          }
+          return current;
+        });
+
         toast.success('Problem updated successfully!');
     },
     onError: (error) => {
@@ -219,7 +230,13 @@ function App() {
             {isLoading ? (
               <div style={{ textAlign: 'center', padding: '2rem' }}>Loading problems...</div>
             ) : (
-              <ProblemTable problems={problems} onEdit={setEditingProblem} onDelete={handleDeleteProblem} isAdmin={isAdmin} />
+              <ProblemTable 
+                problems={problems} 
+                onEdit={setEditingProblem} 
+                onDelete={handleDeleteProblem} 
+                onShowNotes={setSelectedNotesProblem}
+                isAdmin={isAdmin} 
+              />
             )}
           </div>
           {isAdmin && <FAB onClick={() => setIsAddProblemModalOpen(true)} />}
@@ -235,6 +252,14 @@ function App() {
             isLoading={updateMutation.isPending}
             onClose={() => !updateMutation.isPending && setEditingProblem(null)}
             onSubmit={(id, data) => updateMutation.mutate({ id, updatedData: data })}
+          />
+          <NotesDrawer
+            isOpen={!!selectedNotesProblem}
+            problem={selectedNotesProblem}
+            onClose={() => setSelectedNotesProblem(null)}
+            isAdmin={isAdmin}
+            isSaving={updateMutation.isPending}
+            onSave={(id, notes) => updateMutation.mutate({ id, updatedData: { notes } })}
           />
         </div>
       )}
