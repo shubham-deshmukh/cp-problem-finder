@@ -537,9 +537,15 @@ def login_as_guest(request: Request, background_tasks: BackgroundTasks):
     # Create guest index and seed dummy data
     try:
         index = client.index(index_name)
-        index.add_documents(DUMMY_DATA)
-        index.update_searchable_attributes(["title", "tags", "platform"])
-        index.update_filterable_attributes(["platform", "difficulty", "tags", "isNew", "link"])
+        task_docs = index.add_documents(DUMMY_DATA)
+        task_searchable = index.update_searchable_attributes(["title", "tags", "platform"])
+        task_filterable = index.update_filterable_attributes(["platform", "difficulty", "tags", "isNew", "link"])
+        
+        # Wait for all operations to be indexed/configured before returning to the frontend.
+        # This prevents a race condition where the frontend queries the new index before indexing completes.
+        client.wait_for_task(task_docs.task_uid)
+        client.wait_for_task(task_searchable.task_uid)
+        client.wait_for_task(task_filterable.task_uid)
     except Exception as e:
         logger.error(f"Failed to initialize guest sandbox index {index_name}: {e}")
         raise HTTPException(status_code=500, detail="Failed to initialize guest sandbox index")
