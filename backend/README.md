@@ -1,6 +1,6 @@
-# DSA Search Engine - Backend API
+# CP Problem Finder - Backend API
 
-This is the backend service for the DSA based search engine, built with **Python**, **FastAPI**, and **Meilisearch**.
+This is the backend service for the CP Problem Finder, built with **Python**, **FastAPI**, and **Meilisearch**.
 
 ## Features
 - 🚀 Blazing fast search capabilities powered by Meilisearch.

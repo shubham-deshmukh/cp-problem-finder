@@ -309,7 +309,7 @@ async def lifespan(app: FastAPI):
     # Any cleanup code would go here when the server shuts down
 
 # Initialize FastAPI App
-app = FastAPI(title="DSA Search Engine API", lifespan=lifespan)
+app = FastAPI(title="CP Problem Finder API", lifespan=lifespan)
 
 # Configure CORS
 app.add_middleware(
@@ -327,7 +327,7 @@ app.add_middleware(
 # 4. Define API Endpoints
 @app.get("/")
 def read_root():
-    return {"message": "DSA Search Engine API is running. Visit /docs for Swagger UI."}
+    return {"message": "CP Problem Finder API is running. Visit /docs for Swagger UI."}
 
 @app.get("/tags", response_model=List[str])
 def get_tags():
