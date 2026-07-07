@@ -1,8 +1,17 @@
 import { useState } from 'react';
 import styles from './Login.module.css';
+import { WelcomeModal } from './WelcomeModal';
 
 export function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(() => {
+    return !localStorage.getItem('seen_welcome_guide');
+  });
+
+  const handleCloseWelcome = () => {
+    localStorage.setItem('seen_welcome_guide', 'true');
+    setShowWelcome(false);
+  };
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);
@@ -44,6 +53,7 @@ export function LoginPage() {
 
   return (
     <div className={styles['login-container']}>
+      {showWelcome && <WelcomeModal onClose={handleCloseWelcome} />}
       <div className={styles['login-background']}>
         {/* Decorative code snippets */}
         <div className={`${styles['code-snippet']} ${styles['code-snippet-1']}`}>&lt;/&gt;</div>
