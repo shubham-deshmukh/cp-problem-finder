@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 import re
 import html
 import urllib.parse
-from fastapi import FastAPI, Query, HTTPException, Depends, Request, BackgroundTasks
+from fastapi import FastAPI, Query, HTTPException, Depends, Request, BackgroundTasks, Response
 import uuid
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import RedirectResponse
@@ -364,6 +364,7 @@ def get_tags():
 
 @app.get("/search", response_model=List[Problem])
 def search_problems(
+    response: Response,
     q: str = Query("", description="The main search query string"),
     limit: int = Query(20, description="Max results to return"),
     offset: int = Query(0, description="Number of results to skip"),
@@ -375,6 +376,9 @@ def search_problems(
     """
     Search for DSA problems with optional faceting/filtering.
     """
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
     # Construct the filter string for Meilisearch
     filter_conditions = []
     
