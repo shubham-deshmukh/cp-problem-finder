@@ -1,8 +1,17 @@
 import { useState } from 'react';
 import styles from './Login.module.css';
+import { WelcomeModal } from './WelcomeModal';
 
 export function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(() => {
+    return !localStorage.getItem('seen_welcome_guide');
+  });
+
+  const handleCloseWelcome = () => {
+    localStorage.setItem('seen_welcome_guide', 'true');
+    setShowWelcome(false);
+  };
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);
@@ -44,6 +53,7 @@ export function LoginPage() {
 
   return (
     <div className={styles['login-container']}>
+      {showWelcome && <WelcomeModal onClose={handleCloseWelcome} />}
       <div className={styles['login-background']}>
         {/* Decorative code snippets */}
         <div className={`${styles['code-snippet']} ${styles['code-snippet-1']}`}>&lt;/&gt;</div>
@@ -106,37 +116,44 @@ export function LoginPage() {
         <div className={styles['features-section']}>
           <div className={styles.feature}>
             <div className={`${styles['feature-icon']} ${styles['feature-icon-1']}`}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1 0-3.12 3 3 0 0 1 0-3.88 2.5 2.5 0 0 1 0-3.12A2.5 2.5 0 0 1 9.5 2Z"/>
+                <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 0-3.12 3 3 0 0 0 0-3.88 2.5 2.5 0 0 0 0-3.12A2.5 2.5 0 0 0 14.5 2Z"/>
               </svg>
             </div>
             <div className={styles['feature-content']}>
-              <h3 className={styles['feature-title']}>Fast & Easy Access</h3>
-              <p className={styles['feature-desc']}>One click sign-in to continue</p>
+              <h3 className={styles['feature-title']}>Find Problems by Pattern</h3>
+              <p className={styles['feature-desc']}>Search across tags, techniques, and difficulty levels.</p>
             </div>
           </div>
 
           <div className={styles.feature}>
             <div className={`${styles['feature-icon']} ${styles['feature-icon-2']}`}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 11h-4v-2h4V6h2v4h4v2h-4v4h-2v-4z"/>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+                <line x1="10" y1="9" x2="8" y2="9" />
               </svg>
             </div>
             <div className={styles['feature-content']}>
-              <h3 className={styles['feature-title']}>Secure & Private</h3>
-              <p className={styles['feature-desc']}>We never store your password</p>
+              <h3 className={styles['feature-title']}>Structured Revision Notes</h3>
+              <p className={styles['feature-desc']}>Maintain observations, mistakes, and related problems.</p>
             </div>
           </div>
 
           <div className={styles.feature}>
             <div className={`${styles['feature-icon']} ${styles['feature-icon-3']}`}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+                <path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/>
               </svg>
             </div>
             <div className={styles['feature-content']}>
-              <h3 className={styles['feature-title']}>Personalized Experience</h3>
-              <p className={styles['feature-desc']}>Sync your progress across devices</p>
+              <h3 className={styles['feature-title']}>Demo Workspace</h3>
+              <p className={styles['feature-desc']}>Experience full CRUD functionality without affecting real-time data.</p>
             </div>
           </div>
         </div>
