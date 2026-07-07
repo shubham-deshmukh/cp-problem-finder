@@ -17,6 +17,7 @@ const EditProblemModal: React.FC<EditProblemModalProps> = ({ isOpen, isLoading =
   const [platform, setPlatform] = useState('Leetcode');
   const [difficulty, setDifficulty] = useState<DifficultyLevel>('Easy');
   const [tags, setTags] = useState<string[]>([]);
+  const [notes, setNotes] = useState('');
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [isFetchingTags, setIsFetchingTags] = useState(false);
 
@@ -28,6 +29,7 @@ const EditProblemModal: React.FC<EditProblemModalProps> = ({ isOpen, isLoading =
       setPlatform(problem.platform);
       setDifficulty(problem.difficulty as DifficultyLevel);
       setTags(problem.tags);
+      setNotes(problem.notes || '');
 
       const fetchTags = async () => {
         setIsFetchingTags(true);
@@ -66,7 +68,7 @@ const EditProblemModal: React.FC<EditProblemModalProps> = ({ isOpen, isLoading =
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(problem.id, { title, link, platform, difficulty, tags });
+    onSubmit(problem.id, { title, link, platform, difficulty, tags, notes });
   };
 
   return (
@@ -116,6 +118,19 @@ const EditProblemModal: React.FC<EditProblemModalProps> = ({ isOpen, isLoading =
               ))}
               <select onChange={handleAddTag} value="" style={{ border: 'none', outline: 'none', background: 'transparent', color: 'inherit', flexGrow: 1, minWidth: '150px', padding: '0', fontSize: 'inherit' }} disabled={isLoading || isFetchingTags}><option value="" disabled style={{ background: 'var(--bg, #1e1e1e)' }}>{isFetchingTags ? 'Loading tags...' : 'Select a tag...'}</option>{availableTags.filter(t => !tags.includes(t)).map(t => (<option key={t} value={t} style={{ background: 'var(--bg, #1e1e1e)' }}>{t}</option>))}</select>
             </div>
+          </div>
+
+          <div className={styles['form-group']}>
+            <label htmlFor="edit-notes">Notes / Hints (Markdown supported)</label>
+            <textarea 
+              id="edit-notes" 
+              className={styles['form-control']} 
+              style={{ minHeight: '80px', resize: 'vertical' }}
+              value={notes} 
+              onChange={(e) => setNotes(e.target.value)} 
+              placeholder="e.g. Think dynamic programming, count subproblems carefully." 
+              disabled={isLoading}
+            />
           </div>
 
           <div className={styles['modal-actions']}>
