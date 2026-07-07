@@ -161,20 +161,60 @@
   background: rgba(167, 139, 250, 0.2);
 }
 
-.security-message {
+.guest-login-container {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  color: #9ca3af;
+  gap: 0.75rem;
   margin-bottom: 1.5rem;
 }
 
-.security-message svg {
+.guest-login-btn {
+  width: 100%;
+  padding: 0.85rem 1.5rem;
+  background: transparent;
   color: #a78bfa;
-  width: 16px;
-  height: 16px;
+  border: 1px solid rgba(167, 139, 250, 0.4);
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.guest-login-btn:hover:not(:disabled) {
+  background: rgba(167, 139, 250, 0.1);
+  border-color: #a78bfa;
+  box-shadow: 0 6px 16px rgba(167, 139, 250, 0.2);
+  transform: translateY(-2px);
+}
+
+.guest-login-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.guest-login-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.guest-login-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.guest-subtitle {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #9ca3af;
+  text-align: center;
+  font-weight: 400;
 }
 
 .features-section {

