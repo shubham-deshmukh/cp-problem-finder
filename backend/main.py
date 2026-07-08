@@ -382,7 +382,7 @@ def search_problems(
     platform: Optional[str] = Query(None, description="Filter by platform (e.g., Leetcode)"),
     difficulty: Optional[str] = Query(None, description="Filter by difficulty (e.g., High)"),
     tag: Optional[str] = Query(None, description="Filter by a specific tag"),
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
+    current_user: dict = Depends(get_current_user)
 ):
     """
     Search for DSA problems with optional faceting/filtering.
@@ -412,13 +412,7 @@ def search_problems(
         search_params["filter"] = filter_conditions
 
     # Resolve target index dynamically if credentials are provided
-    index_name = INDEX_NAME
-    if credentials:
-        try:
-            payload = jwt.decode(credentials.credentials, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-            index_name = payload.get("index_name", INDEX_NAME)
-        except Exception:
-            pass
+    index_name = current_user.get("index_name", INDEX_NAME)
 
     # Perform the search
     index = client.index(index_name)
