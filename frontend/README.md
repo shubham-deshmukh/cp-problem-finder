@@ -15,9 +15,8 @@ The CP Problem Finder frontend connects to the FastAPI backend service to query 
 - **Framework:** [React 19](https://react.dev/)
 - **Build Tool:** [Vite 8](https://vite.dev/)
 - **Language:** [TypeScript](https://www.typescriptlang.org/)
-- **State Management:** [Zustand 5](https://github.com/pmndrs/zustand) (Auth persistence)
+- **State Management:** [Zustand 5](https://github.com/pmndrs/zustand) (In-memory auth store)
 - **Data Fetching & Cache:** [TanStack React Query 5](https://tanstack.com/query/latest) (Server state synchronization)
-- **Token Decoding:** [jwt-decode 4](https://github.com/auth0/jwt-decode)
 - **Styling:** Custom CSS Modules (Vanilla CSS for performance and modular scoping)
 - **Feedback:** [react-hot-toast](https://react-hot-toast.com/) (Interactive user notifications)
 
@@ -63,10 +62,10 @@ Every component is written as a functional React component with:
 The frontend splits state into two categories:
 
 ### 1. Client State (Authentication)
-We use a lightweight [Zustand](https://github.com/pmndrs/zustand) store to manage persistent token authentication.
+We use a lightweight [Zustand](https://github.com/pmndrs/zustand) store to manage authentication in-memory.
 - **Store Path:** [authStore.ts](file:///d:/Projects/cp-problem-finder/frontend/src/stores/authStore.ts)
-- **Behavior:** On start, the store checks `localStorage` for `authToken`. If present, it decodes the user's details (name, email, avatar, role, custom sandbox `index_name`) via `jwt-decode`.
-- **Stateless Logout:** Clears local credentials, requests the backend to delete the active guest index namespace, and resets auth status.
+- **Behavior:** On app boot, the frontend makes an asynchronous GET query to the backend `/auth/me` endpoint (using `credentials: 'include'`). If the backend session cookie exists and is valid, the backend returns the decrypted user details (name, email, role) and the user is authenticated in-memory.
+- **Stateless Logout:** Destroys client state, calls `/auth/logout` to clear the `access_token` cookie, and deletes the temporary guest index if applicable.
 
 ### 2. Server State (Querying & Mutations)
 All server requests (searching, adding problems, updating notes, deletions) are handled by [TanStack React Query](https://tanstack.com/query/latest).
@@ -119,20 +118,22 @@ sequenceDiagram
 
     rect rgb(25, 25, 35)
     note right of FE: Google OAuth Login Flow
-    FE->>BE: Directs location to /auth/login
+    FE->>BE: Directs window location to /auth/login
     BE->>Google: Redirects with Client ID & Scope
     Google->>BE: Redirects to Callback URI with Code
     BE->>Google: Exchanges Code for Access Token
-    BE->>FE: Redirects to Frontend URL with JWT parameter (?token=...)
-    FE->>FE: Extracts token, saves in localStorage, cleans URL
+    BE->>FE: Redirects to Frontend (sets HttpOnly access_token Cookie)
+    FE->>BE: Calls /auth/me to verify cookie session on app load
+    BE->>FE: Returns User Profile Payload
     end
 
     rect rgb(35, 25, 25)
     note right of FE: Guest Mode Login Flow
-    FE->>BE: Directs location to /auth/guest
+    FE->>BE: Directs window location to /auth/guest
     BE->>BE: Creates temporary Meilisearch index & seeds dummy data
-    BE->>FE: Redirects with guest token (?token=...)
-    FE->>FE: Extracts token, saves in localStorage, cleans URL
+    BE->>FE: Redirects to Frontend (sets HttpOnly access_token Cookie)
+    FE->>BE: Calls /auth/me to verify cookie session on app load
+    BE->>FE: Returns Guest Admin Payload
     end
 ```
 
