@@ -42,7 +42,7 @@ function App() {
     if (saved) {
       try {
         return JSON.parse(saved);
-      } catch (e) {
+      } catch {
         return initialTourState;
       }
     }
@@ -58,12 +58,7 @@ function App() {
     });
   };
 
-  // Detect search action for tour progress
-  useEffect(() => {
-    if (isGuest && searchValue.trim().length > 0 && !tourProgress.search) {
-      completeStep('search');
-    }
-  }, [searchValue, isGuest, tourProgress.search]);
+
 
   // Intercept OAuth token from URL parameters when backend redirects back
   useEffect(() => {
@@ -140,7 +135,9 @@ function App() {
             } else if (errorData.detail) {
                 errorMessage = errorData.detail;
             }
-          } catch (e) {}
+          } catch {
+            // Error is ignored
+          }
           throw new Error(errorMessage);
         }
         return response.json();
@@ -166,6 +163,7 @@ function App() {
 
   // Mutation for updating an existing problem
   const updateMutation = useMutation({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mutationFn: async ({ id, updatedData }: { id: number, updatedData: any }) => {
         const token = localStorage.getItem('authToken');
         const response = await fetch(`${import.meta.env.VITE_API_URL}/problems/${id}`, {
@@ -184,7 +182,9 @@ function App() {
                 if (errorData.detail) {
                     errorMessage = Array.isArray(errorData.detail) ? errorData.detail[0].msg : errorData.detail;
                 }
-            } catch (e) {}
+            } catch {
+              // Error is ignored
+            }
             throw new Error(errorMessage);
         }
         return response.json();
@@ -233,7 +233,9 @@ function App() {
                 if (errorData.detail) {
                     errorMessage = Array.isArray(errorData.detail) ? errorData.detail[0].msg : errorData.detail;
                 }
-            } catch (e) {}
+            } catch {
+              // Error is ignored
+            }
             throw new Error(errorMessage);
         }
         return id;
@@ -274,7 +276,15 @@ function App() {
           <Header onThemeToggle={toggleTheme} isDarkMode={isDarkMode} />
           <div className={styles['main-content']}>
             {isGuest && <DemoTour progress={tourProgress} />}
-            <SearchBar searchValue={searchValue} onSearchChange={setSearchValue} />
+            <SearchBar 
+              searchValue={searchValue} 
+              onSearchChange={(value) => {
+                setSearchValue(value);
+                if (isGuest && value.trim().length > 0 && !tourProgress.search) {
+                  completeStep('search');
+                }
+              }} 
+            />
             {isLoading ? (
               <div style={{ textAlign: 'center', padding: '2rem' }}>Loading problems...</div>
             ) : (
