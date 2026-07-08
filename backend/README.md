@@ -37,11 +37,11 @@ backend/
 
 ## 🔒 Authentication & Authorization (RBAC)
 
-The backend uses a stateless JWT Bearer token authentication mechanism. Roles are mapped as follows:
+The backend uses a stateless cookie-based JWT authentication mechanism (falling back to Authorization Bearer headers for API client compatibility). Roles are mapped as follows:
 
-1. **Guest:** Authenticates via `/auth/guest`. Receives a JWT with role `admin` and an isolated, session-scoped index name (e.g., `dsa_problems_guest_1680000000_abc123`). Authorized to perform full CRUD operations inside their own sandbox.
-2. **Registered User:** Authenticates via Google OAuth. If their email is not in the `ADMIN_EMAILS` environment variable, they receive a JWT with role `user` pointing to the public `dsa_problems` index. Authorized to perform read-only searches.
-3. **Admin:** Authenticates via Google OAuth. If their email matches `ADMIN_EMAILS`, they receive a JWT with role `admin` pointing to the default `dsa_problems` index. Authorized to perform CRUD operations on the production database.
+1. **Guest:** Authenticates via `/auth/guest`. Sets a secure `access_token` session cookie with role `admin` and an isolated, session-scoped index name (e.g., `dsa_problems_guest_1680000000_abc123`). Authorized to perform full CRUD operations inside their own sandbox.
+2. **Registered User:** Authenticates via Google OAuth. If their email is not in the `ADMIN_EMAILS` environment variable, they receive a session cookie with role `user` pointing to the public `dsa_problems` index. Authorized to perform read-only searches.
+3. **Admin:** Authenticates via Google OAuth. If their email matches `ADMIN_EMAILS`, they receive a session cookie with role `admin` pointing to the default `dsa_problems` index. Authorized to perform CRUD operations on the production database.
 
 ### Middleware Execution & Authorization Flow
 Requests are piped through FastAPI dependencies to enforce RBAC:
@@ -53,15 +53,15 @@ graph TD
     CORS -->|Valid Origin| Path{Route Type}
     
     Path -->|Public Route: / or /tags| Execute[Execute Endpoint Handler]
-    Path -->|Secured Search: /search| CheckToken{Check Authorization Header}
+    Path -->|Secured Search: /search| CheckToken{Depends: get_current_user}
     Path -->|CRUD /problems| RequireAdmin{Depends: get_admin_user}
     
-    CheckToken -->|No Token| RunDefaultIndex[Read from Public Index]
-    CheckToken -->|Valid JWT| DecodeClaims[Decode JWT index_name]
-    DecodeClaims --> RunScopedIndex[Read from Dynamic Sandbox Index]
+    CheckToken -->|No Cookie/Bearer| Error401[401 Authentication required]
+    CheckToken -->|Valid JWT Cookie| DecodeClaims[Decode JWT index_name]
+    DecodeClaims --> RunScopedIndex[Search Dynamic Sandbox/Public Index]
     
-    RequireAdmin -->|No Bearer Token| Error401[401 Authentication required]
-    RequireAdmin -->|Valid JWT| CheckRole{Is email in ADMIN_EMAILS or email == guest?}
+    RequireAdmin -->|No Cookie/Bearer| Error401_Admin[401 Authentication required]
+    RequireAdmin -->|Valid JWT Cookie| CheckRole{Is email in ADMIN_EMAILS or email == guest?}
     CheckRole -->|Yes| ModifyDb[Execute Write on production/sandbox index]
     CheckRole -->|No| Error403[403 Forbidden]
 ```
@@ -76,14 +76,15 @@ The API is fully documented using interactive Swagger documentation, available a
 |---|---|---|---|---|
 | **GET** | `/` | Health check endpoint returning API status | ❌ None | None |
 | **GET** | `/tags` | Returns the list of all available algorithmic topic tags | ❌ None | None |
-| **GET** | `/search` | Queries problems using Meilisearch. Supports limit, offset, and filters | 🟡 Optional | `user` or `admin` (Default public index if unauthenticated) |
-| **POST** | `/problems` | Submits a new problem. Triggers scraper strategy based on URL | ✅ Bearer | `admin` |
-| **PUT** | `/problems/{id}` | Partially updates title, tags, difficulty, or notes | ✅ Bearer | `admin` |
-| **DELETE** | `/problems/{id}`| Removes a problem document from the index | ✅ Bearer | `admin` |
-| **GET** | `/auth/guest` | Logs in guest, initializes dynamic sandbox index, and returns JWT | ❌ None | None (Generates guest admin) |
+| **GET** | `/search` | Queries problems using Meilisearch. Supports limit, offset, and filters | ✅ Cookie (or Bearer) | `user` or `admin` |
+| **POST** | `/problems` | Submits a new problem. Triggers scraper strategy based on URL | ✅ Cookie (or Bearer) | `admin` |
+| **PUT** | `/problems/{id}` | Partially updates title, tags, difficulty, or notes | ✅ Cookie (or Bearer) | `admin` |
+| **DELETE** | `/problems/{id}`| Removes a problem document from the index | ✅ Cookie (or Bearer) | `admin` |
+| **GET** | `/auth/guest` | Logs in guest, initializes dynamic sandbox index, sets cookie, redirects | ❌ None | None (Generates guest admin) |
 | **GET** | `/auth/login` | Redirects client to Google OAuth authorization page | ❌ None | None |
-| **GET** | `/auth/callback`| Callback endpoint for Google OAuth. Validates code, issues session JWT| ❌ None | None (Sets role based on email) |
-| **POST** | `/auth/logout` | Invalidates session and instantly deletes guest index sandbox | ✅ Bearer | `user` or `admin` |
+| **GET** | `/auth/callback`| Callback endpoint for Google OAuth. Validates code, sets cookie, redirects | ❌ None | None (Sets role based on email) |
+| **GET** | `/auth/me` | Decodes session cookie and returns active profile details | ✅ Cookie (or Bearer) | `user` or `admin` |
+| **POST** | `/auth/logout` | Clears cookie session and instantly deletes guest index sandbox | ✅ Cookie (or Bearer) | `user` or `admin` |
 
 ---
 

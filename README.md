@@ -20,8 +20,8 @@ During competitive programming contests, developers often recall solving a simil
 
 ## 🚀 Features
 
-- 🔑 **Google Authentication:** Secure, passwordless login integrated with Google OAuth 2.0.
-- 🧪 **Demo Workspace (Guest Mode):** Instant, one-click access to a fully isolated, sandboxed environment. Try out all admin CRUD actions safely without registration.
+- 🔑 **Google Authentication:** Secure, passwordless login integrated with Google OAuth 2.0. Sessions are secured using same-origin `HttpOnly` cookies to defend against XSS token theft.
+- 🧪 **Demo Workspace (Guest Mode):** Instant, one-click access to a fully isolated, sandboxed environment. Authenticates via secure cookies. Try out all admin CRUD actions safely without registration.
 - 📝 **Problem CRUD:** Add, update, or delete problems. The system dynamically scrapes problem titles directly from platform URLs.
 - 🏷️ **Tag-based Organization:** Group problems by specific algorithmic techniques (e.g., `segment trees`, `graphs`, `recursion`).
 - 🔍 **Instant Fuzzy Search:** Search-as-you-type searching across titles, tags, and platforms powered by Meilisearch.
@@ -36,7 +36,7 @@ During competitive programming contests, developers often recall solving a simil
 ## 🧪 Demo Workspace (Guest Mode)
 
 The **Demo Workspace** is designed specifically for recruiters, interviewers, and developers evaluating the codebase:
-- **Sandbox Isolation:** Clicking *Continue as guest* creates a session-specific, isolated Meilisearch index (`dsa_problems_guest_{timestamp}_{uuid}`) seeded with initial dummy problems.
+- **Sandbox Isolation:** Clicking *Continue as guest* sets a secure session-specific cookie and initializes an isolated Meilisearch index (`dsa_problems_guest_{timestamp}_{uuid}`) seeded with initial dummy problems.
 - **Full CRUD Capabilities:** Guests are granted temporary admin rights to add, update, delete, or write notes for any problem in their sandbox.
 - **Safety & Protection:** Production data is completely protected from unauthorized edits, and concurrent guest workspaces never interfere with each other.
 - **Automated Memory Cleanup:** Sandbox indices are automatically cleaned up in two ways:
@@ -64,10 +64,10 @@ The **Demo Workspace** is designed specifically for recruiters, interviewers, an
 | **Frontend** | React 19, TypeScript, Vite | Single Page Application (SPA), state management, UI modules |
 | **Backend** | Python, FastAPI, Uvicorn | High-performance asynchronous API, routing, scrapers, and background tasks |
 | **Search Engine** | Meilisearch | Lightning-fast fuzzy search, indexing, filtering, and facets |
-| **Authentication** | Google OAuth 2.0, PyJWT | External identity provider and stateless JWT session management |
+| **Authentication** | Google OAuth 2.0, PyJWT | External identity provider and secure `HttpOnly` cookie session management |
 | **Impersonator** | `curl_cffi` | Bypasses Cloudflare anti-bot checks to scrape problem titles |
-| **State & Cache** | Zustand, TanStack React Query | Lightweight auth store and robust query/mutation caching |
-| **Reverse Proxy** | Caddy | SSL termination and request routing (Production) |
+| **State & Cache** | Zustand, TanStack React Query | In-memory auth state and robust query/mutation caching |
+| **Reverse Proxy** | Caddy, Vercel Rewrites, Vite Proxy | SSL termination, relative API routing, and domain unification for same-origin cookies |
 | **Containerization**| Docker, Docker Compose | Consistent local running environment and deployment orchestration |
 
 ---
@@ -82,12 +82,14 @@ graph TD
     User[Developer / Recruiter] -->|Interacts with| FE[Frontend React SPA]
     
     %% API Requests
-    FE -->|API Calls + JWT Bearer Token| FastAPI[FastAPI Backend]
+    FE -->|Relative API Calls| Proxy[Proxy Router <br> Vite Dev Proxy / Vercel Rewrites]
+    Proxy -->|Proxies Request + HttpOnly Cookie| FastAPI[FastAPI Backend]
     
     %% Authentication Flows
     FastAPI -->|1. Redirects for Auth| GoogleOAuth[Google OAuth 2.0]
     GoogleOAuth -->|2. Returns Auth Code| FastAPI
-    FastAPI -->|3. Decodes & Issues Session JWT| FE
+    FastAPI -->|3. Sets HttpOnly access_token Cookie| FE
+    FE -->|4. Checks session on load /auth/me| Proxy
     
     %% Scraper Flows
     FastAPI -->|Scrapes titles using curl_cffi| CP_Platforms[CP Platforms <br> LeetCode / Codeforces / AtCoder / CSES / CodeChef]
@@ -98,7 +100,7 @@ graph TD
         GuestIndex[(Sandbox Index: dsa_problems_guest_X)]
     end
     
-    FastAPI -->|Checks JWT index_name| RouteDB{Index Router}
+    FastAPI -->|Extracts JWT index_name| RouteDB{Index Router}
     RouteDB -->|Admin / User JWT| DefaultIndex
     RouteDB -->|Guest JWT| GuestIndex
     
