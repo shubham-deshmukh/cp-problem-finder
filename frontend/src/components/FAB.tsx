@@ -6,7 +6,7 @@ interface FABProps {
 
 export function FAB({ onClick }: FABProps) {
   return (
-    <button className={styles.fab} onClick={onClick} title="Add problem">
+    <button id="tour-add-btn" className={styles.fab} onClick={onClick} title="Add problem">
       +
     </button>
   );

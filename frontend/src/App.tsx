@@ -12,6 +12,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import { LoginPage } from './components/Login';
 import { useAuthStore } from './stores/authStore';
 import { NotesDrawer } from './components/NotesDrawer';
+import { DemoTour, type TourProgress } from './components/DemoTour';
 
 function App() {
   const [searchValue, setSearchValue] = useState('');
@@ -27,6 +28,37 @@ function App() {
   const login = useAuthStore((state) => state.login);
   const user = useAuthStore((state) => state.user);
   const isAdmin = user?.role === 'admin';
+  const isGuest = user?.email === 'guest@example.com';
+
+  const initialTourState: TourProgress = {
+    search: false,
+    theme: false,
+    add: false,
+    notes: false,
+  };
+
+  const [tourProgress, setTourProgress] = useState<TourProgress>(() => {
+    const saved = sessionStorage.getItem('guest_tour_progress');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return initialTourState;
+      }
+    }
+    return initialTourState;
+  });
+
+  const completeStep = (step: keyof TourProgress) => {
+    setTourProgress((prev) => {
+      if (prev[step]) return prev;
+      const next = { ...prev, [step]: true };
+      sessionStorage.setItem('guest_tour_progress', JSON.stringify(next));
+      return next;
+    });
+  };
+
+
 
   // Intercept OAuth token from URL parameters when backend redirects back
   useEffect(() => {
@@ -72,6 +104,9 @@ function App() {
     } else {
       document.documentElement.style.colorScheme = 'dark';
     }
+    if (isGuest) {
+      completeStep('theme');
+    }
   };
 
   // Mutation for adding a problem
@@ -100,7 +135,9 @@ function App() {
             } else if (errorData.detail) {
                 errorMessage = errorData.detail;
             }
-          } catch (e) {}
+          } catch {
+            // Error is ignored
+          }
           throw new Error(errorMessage);
         }
         return response.json();
@@ -113,6 +150,9 @@ function App() {
         // We invalidate the cache to ensure all query keys refetch fresh data
         queryClient.invalidateQueries({ queryKey: ['problems'] });
         setIsAddProblemModalOpen(false);
+        if (isGuest) {
+          completeStep('add');
+        }
         toast.success('Problem added successfully!');
     },
     onError: (error) => {
@@ -123,6 +163,7 @@ function App() {
 
   // Mutation for updating an existing problem
   const updateMutation = useMutation({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mutationFn: async ({ id, updatedData }: { id: number, updatedData: any }) => {
         const token = localStorage.getItem('authToken');
         const response = await fetch(`${import.meta.env.VITE_API_URL}/problems/${id}`, {
@@ -141,12 +182,14 @@ function App() {
                 if (errorData.detail) {
                     errorMessage = Array.isArray(errorData.detail) ? errorData.detail[0].msg : errorData.detail;
                 }
-            } catch (e) {}
+            } catch {
+              // Error is ignored
+            }
             throw new Error(errorMessage);
         }
         return response.json();
     },
-    onSuccess: (updatedProblem) => {
+    onSuccess: (updatedProblem, variables) => {
         // Instantly update UI cache
         queryClient.setQueryData(['problems', debouncedSearchValue], (old: Problem[] | undefined) => {
             return old ? old.map(p => p.id === updatedProblem.id ? updatedProblem : p) : [];
@@ -162,6 +205,10 @@ function App() {
           }
           return current;
         });
+
+        if (isGuest && variables?.updatedData && 'notes' in variables.updatedData) {
+          completeStep('notes');
+        }
 
         toast.success('Problem updated successfully!');
     },
@@ -186,7 +233,9 @@ function App() {
                 if (errorData.detail) {
                     errorMessage = Array.isArray(errorData.detail) ? errorData.detail[0].msg : errorData.detail;
                 }
-            } catch (e) {}
+            } catch {
+              // Error is ignored
+            }
             throw new Error(errorMessage);
         }
         return id;
@@ -226,7 +275,16 @@ function App() {
         <div className={`${styles.app} ${isDarkMode ? 'dark-mode' : ''}`}>
           <Header onThemeToggle={toggleTheme} isDarkMode={isDarkMode} />
           <div className={styles['main-content']}>
-            <SearchBar searchValue={searchValue} onSearchChange={setSearchValue} />
+            {isGuest && <DemoTour progress={tourProgress} />}
+            <SearchBar 
+              searchValue={searchValue} 
+              onSearchChange={(value) => {
+                setSearchValue(value);
+                if (isGuest && value.trim().length > 0 && !tourProgress.search) {
+                  completeStep('search');
+                }
+              }} 
+            />
             {isLoading ? (
               <div style={{ textAlign: 'center', padding: '2rem' }}>Loading problems...</div>
             ) : (
