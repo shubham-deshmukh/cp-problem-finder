@@ -8,7 +8,7 @@ interface SearchBarProps {
 export function SearchBar({ searchValue, onSearchChange }: SearchBarProps) {
   return (
     <div className={styles['search-container']}>
-      <div className={styles['search-bar']}>
+      <div id="tour-search-bar" className={styles['search-bar']}>
         <span className={styles['search-icon']}>🔍</span>
         <input
           type="text"

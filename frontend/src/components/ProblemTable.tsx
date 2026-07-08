@@ -26,7 +26,7 @@ export function ProblemTable({ problems, onEdit, onDelete, onShowNotes, isAdmin 
           </tr>
         </thead>
         <tbody>
-          {problems.map((problem) => (
+          {problems.map((problem, index) => (
             <tr key={problem.id} className={styles['problem-row']}>
               <td className={styles['col-platform']}>
                 <div className={styles['platform-badge']}>
@@ -50,6 +50,7 @@ export function ProblemTable({ problems, onEdit, onDelete, onShowNotes, isAdmin 
                   </a>
                   {(problem.notes || isAdmin) && (
                     <button 
+                      id={index === 0 ? "tour-notes-btn" : undefined}
                       onClick={(e) => {
                         e.stopPropagation();
                         onShowNotes?.(problem);

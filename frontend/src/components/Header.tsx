@@ -19,6 +19,7 @@ export function Header({ onThemeToggle, isDarkMode }: HeaderProps) {
       <div className={styles['header-right']}>
         <div className={styles['theme-toggle']}>
           <button 
+            id="tour-theme-btn"
             className={`${styles['icon-button']} ${styles['theme-button']} ${isDarkMode ? styles['sun-button'] : styles['moon-button']}`} 
             onClick={onThemeToggle}
             title={isDarkMode ? "Switch to light theme" : "Switch to dark theme"}
