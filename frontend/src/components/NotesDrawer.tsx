@@ -76,43 +76,122 @@ export const NotesDrawer: React.FC<NotesDrawerProps> = ({
       return `<p class="${styles['no-notes']}">No notes or hints have been added to this problem yet.</p>`;
     }
 
-    let html = md
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
+    const lines = md.split(/\r?\n/);
+    const blocks: string[] = [];
+    
+    let inCodeBlock = false;
+    let codeLines: string[] = [];
+    
+    let inList = false;
+    let listItems: string[] = [];
+    
+    let currentParagraph: string[] = [];
 
-    // Code blocks
-    html = html.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+    const escapeHtml = (text: string) => {
+      return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    };
 
-    // Inline code
-    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+    const parseInline = (text: string) => {
+      let html = escapeHtml(text);
+      // Inline code
+      html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+      // Bold (restricted to same line)
+      html = html.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+      // Italics (restricted to same line)
+      html = html.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
+      // Links
+      html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+      return html;
+    };
 
-    // Headings
-    html = html.replace(/^### (.*$)/gim, '<h5>$1</h5>');
-    html = html.replace(/^## (.*$)/gim, '<h4>$1</h4>');
-    html = html.replace(/^# (.*$)/gim, '<h3>$1</h3>');
+    const closeList = () => {
+      if (inList) {
+        blocks.push(`<ul>${listItems.join('')}</ul>`);
+        inList = false;
+        listItems = [];
+      }
+    };
 
-    // Bold
-    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    const closeParagraph = () => {
+      if (currentParagraph.length > 0) {
+        blocks.push(`<p>${currentParagraph.join('<br />')}</p>`);
+        currentParagraph = [];
+      }
+    };
 
-    // Italics
-    html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
 
-    // Bullet lists
-    html = html.replace(/^\s*[-*]\s+(.*$)/gim, '<li>$1</li>');
-    // Wrap consecutive list items in <ul>
-    html = html.replace(/(<li>.*<\/li>)/gim, '<ul>$1</ul>');
-    // Fix nested UL elements
-    html = html.replace(/<\/ul>\s*<ul>/g, '');
+      if (inCodeBlock) {
+        if (line.trim() === '```') {
+          blocks.push(`<pre><code>${codeLines.join('\n')}</code></pre>`);
+          inCodeBlock = false;
+          codeLines = [];
+        } else {
+          codeLines.push(escapeHtml(line));
+        }
+        continue;
+      }
 
-    // Links
-    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+      // Code block start
+      if (line.trim().startsWith('```')) {
+        closeList();
+        closeParagraph();
+        inCodeBlock = true;
+        continue;
+      }
 
-    // Paragraphs / Newlines
-    html = html.replace(/\n\n/g, '</p><p>');
-    html = html.replace(/\n/g, '<br />');
+      // Horizontal Rule
+      if (/^\s*---+\s*$/.test(line)) {
+        closeList();
+        closeParagraph();
+        blocks.push('<hr />');
+        continue;
+      }
 
-    return `<p>${html}</p>`;
+      // Headings
+      if (/^#+\s+/.test(line)) {
+        closeList();
+        closeParagraph();
+        const level = line.match(/^(#+)/)?.[1].length || 1;
+        const headingText = line.replace(/^#+\s+/, '');
+        const hTag = level === 1 ? 'h3' : level === 2 ? 'h4' : 'h5';
+        blocks.push(`<${hTag}>${parseInline(headingText)}</${hTag}>`);
+        continue;
+      }
+
+      // List items
+      if (/^\s*[-*]\s+/.test(line)) {
+        closeParagraph();
+        inList = true;
+        const itemText = line.replace(/^\s*[-*]\s+/, '');
+        listItems.push(`<li>${parseInline(itemText)}</li>`);
+        continue;
+      }
+
+      // Empty line (paragraph break)
+      if (line.trim() === '') {
+        closeList();
+        closeParagraph();
+        continue;
+      }
+
+      // Regular paragraph text line
+      closeList();
+      currentParagraph.push(parseInline(line));
+    }
+
+    // Close any remaining blocks
+    closeList();
+    closeParagraph();
+    if (inCodeBlock && codeLines.length > 0) {
+      blocks.push(`<pre><code>${codeLines.join('\n')}</code></pre>`);
+    }
+
+    return blocks.join('\n');
   };
 
   return (
