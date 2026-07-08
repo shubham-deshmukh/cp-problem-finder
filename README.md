@@ -183,8 +183,8 @@ The application enforces a stateless JWT-based Role-Based Access Control (RBAC) 
 ### 3. Why Structured Markdown Notes?
 - **Contest Readiness:** Competitive programming requires noting specialized corner cases (e.g., $N=1$, integer overflow) and linking to related templates. Plain text is insufficient; markdown allows rendering code blocks and formatted tables inside the Notes drawer.
 
-### 4. Why Tag-based Search?
-- **Mental Association:** Programmers categorize coding patterns by tags rather than exact names. Utilizing Meilisearch with indexing on `tags` and `platform` enables direct matching on CP strategies.
+### 4. Why Fuzzy Title & Tag-based Search?
+- **Mental Association & Context:** Programmers often search for problems either by their exact name (title) or by algorithmic categories (tags) and platforms. Indexing on `title`, `tags`, and `platform` in Meilisearch allows users to locate problems instantly, whether they are retrieving a specific known problem or searching for a general pattern/strategy.
 
 ---
 
