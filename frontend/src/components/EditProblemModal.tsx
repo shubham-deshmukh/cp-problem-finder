@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from './AddProblemModal.module.css';
 import { type Problem, type DifficultyLevel } from '../types';
+import { useAuthStore } from '../stores/authStore';
 
 interface EditProblemModalProps {
   isOpen: boolean;
@@ -10,6 +11,8 @@ interface EditProblemModalProps {
   // Using 'any' for data to bypass rigid types since title is added
   onSubmit: (id: number, data: any) => void; 
 }
+
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 const EditProblemModal: React.FC<EditProblemModalProps> = ({ isOpen, isLoading = false, problem, onClose, onSubmit }) => {
   const [title, setTitle] = useState('');
@@ -34,11 +37,15 @@ const EditProblemModal: React.FC<EditProblemModalProps> = ({ isOpen, isLoading =
       const fetchTags = async () => {
         setIsFetchingTags(true);
         try {
-          const token = localStorage.getItem('authToken');
-          const response = await fetch(`${import.meta.env.VITE_API_URL}/tags`, {
-            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+          const response = await fetch(`${API_URL}/tags`, {
+            credentials: 'include'
           });
-          if (!response.ok) throw new Error('Failed to fetch tags');
+          if (!response.ok) {
+            if (response.status === 401) {
+              useAuthStore.getState().handleSessionExpired();
+            }
+            throw new Error('Failed to fetch tags');
+          }
           const data = await response.json();
           setAvailableTags(data || []);
         } catch (error) {

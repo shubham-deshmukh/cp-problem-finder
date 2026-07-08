@@ -1,0 +1,20 @@
+{
+  "rewrites": [
+    {
+      "source": "/auth/:path*",
+      "destination": "https://dsasearch.duckdns.org/auth/:path*"
+    },
+    {
+      "source": "/search",
+      "destination": "https://dsasearch.duckdns.org/search"
+    },
+    {
+      "source": "/problems/:path*",
+      "destination": "https://dsasearch.duckdns.org/problems/:path*"
+    },
+    {
+      "source": "/tags",
+      "destination": "https://dsasearch.duckdns.org/tags"
+    }
+  ]
+}

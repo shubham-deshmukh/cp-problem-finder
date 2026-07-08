@@ -8,4 +8,24 @@ export default defineConfig({
     react(),
     babel({ presets: [reactCompilerPreset()] })
   ],
+  server: {
+    proxy: {
+      '/auth': {
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
+      },
+      '/search': {
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
+      },
+      '/problems': {
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
+      },
+      '/tags': {
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
+      },
+    },
+  },
 })
