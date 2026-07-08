@@ -74,11 +74,14 @@ def cleanup_guest_indices():
     Finds and deletes guest indices older than 15 minutes (900 seconds) to prevent bloat.
     """
     try:
-        indices = client.get_indexes()
+        indexes_data = client.get_indexes()
+        # Handle cases where get_indexes() returns a dict {"results": [...]} or a direct list
+        indexes_list = indexes_data.get("results", []) if isinstance(indexes_data, dict) else indexes_data
+        
         current_time = int(time.time())
-        for idx in indices:
-            uid = idx.uid
-            if uid.startswith("dsa_problems_guest_"):
+        for idx in indexes_list:
+            uid = idx.uid if hasattr(idx, "uid") else idx.get("uid") if isinstance(idx, dict) else idx
+            if uid and uid.startswith("dsa_problems_guest_"):
                 parts = uid.split("_")
                 if len(parts) >= 5: # ['dsa', 'problems', 'guest', 'timestamp', 'uuid']
                     try:
