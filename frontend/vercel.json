@@ -9,6 +9,10 @@
       "destination": "https://dsasearch.duckdns.org/search"
     },
     {
+      "source": "/problems",
+      "destination": "https://dsasearch.duckdns.org/problems"
+    },
+    {
       "source": "/problems/:path*",
       "destination": "https://dsasearch.duckdns.org/problems/:path*"
     },
