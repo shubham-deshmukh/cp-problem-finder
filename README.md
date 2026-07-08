@@ -47,15 +47,13 @@ The **Demo Workspace** is designed specifically for recruiters, interviewers, an
 
 ## 📸 Screenshots
 
-*Screenshots of the dashboard, search filters, and markdown notes drawer will be added in a future update.*
-
 | Dashboard (Dark Mode) | Add Problem Interface |
 |:---:|:---:|
-| *[Placeholder: Dashboard Main View]* | *[Placeholder: Add Problem Dialog]* |
+| ![Dashboard Dark Mode](assets/dashboard_dark.png) | ![Add Problem Interface](assets/add_problem.png) |
 
-| Markdown Notes Drawer | Theme Support |
+| Markdown Notes Drawer | Theme Support (Light Mode) |
 |:---:|:---:|
-| *[Placeholder: Markdown Preview & Editor]* | *[Placeholder: Light Mode Toggle]* |
+| ![Markdown Notes Drawer](assets/notes_drawer.png) | ![Theme Support Light Mode](assets/theme_support.png) |
 
 ---
 
