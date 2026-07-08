@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 import re
 import html
 import urllib.parse
-from fastapi import FastAPI, Query, HTTPException, Depends, Request, BackgroundTasks, Response
+from fastapi import FastAPI, Query, HTTPException, Depends, Request, BackgroundTasks, Response, Cookie
 import uuid
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import RedirectResponse
@@ -36,7 +36,7 @@ GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "").strip(' "\'')
 
 JWT_SECRET = os.getenv("JWT_SECRET", "your_super_secret_jwt_key_here")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
-JWT_EXPIRATION_HOURS = int(os.getenv("JWT_EXPIRATION_HOURS", "24"))
+JWT_EXPIRATION_MINUTES = int(os.getenv("JWT_EXPIRATION_MINUTES", "10"))
 # Strip any literal quotes that Docker might pass, and remove accidental trailing slashes
 FRONTEND_URL = os.getenv("FRONTEND_URL", "").strip(' "\'').rstrip('/')
 
@@ -49,10 +49,18 @@ client = meilisearch.Client(MEILI_URL, MEILI_MASTER_KEY)
 
 security = HTTPBearer(auto_error=False)
 
-def get_current_user(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)) -> dict:
-    if not credentials:
+def get_current_user(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    access_token: Optional[str] = Cookie(None)
+) -> dict:
+    token = None
+    if access_token:
+        token = access_token
+    elif credentials:
+        token = credentials.credentials
+
+    if not token:
         raise HTTPException(status_code=401, detail="Authentication required")
-    token = credentials.credentials
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
         return payload
@@ -561,7 +569,7 @@ def login_as_guest(request: Request, background_tasks: BackgroundTasks):
         logger.error(f"Failed to initialize guest sandbox index {index_name}: {e}")
         raise HTTPException(status_code=500, detail="Failed to initialize guest sandbox index")
 
-    expire = datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRATION_HOURS)
+    expire = datetime.now(timezone.utc) + timedelta(minutes=JWT_EXPIRATION_MINUTES)
     jwt_payload = {
         "sub": f"guest_id_{session_id}",
         "email": "guest@example.com",
@@ -582,8 +590,18 @@ def login_as_guest(request: Request, background_tasks: BackgroundTasks):
         if parsed_url.scheme and parsed_url.netloc:
             redirect_base = f"{parsed_url.scheme}://{parsed_url.netloc}"
             
-    redirect_url = f"{redirect_base}?token={access_token}"
-    return RedirectResponse(url=redirect_url)
+    response = RedirectResponse(url=redirect_base)
+    is_secure = redirect_base.startswith("https")
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=is_secure,
+        samesite="lax",
+        max_age=JWT_EXPIRATION_MINUTES * 60,
+        path="/"
+    )
+    return response
 
 @app.get("/auth/login", tags=["Authentication"])
 def login_via_google():
@@ -603,7 +621,10 @@ def login_via_google():
     return RedirectResponse(url)
 
 @app.get("/auth/callback", tags=["Authentication"])
-async def google_auth_callback(code: str = Query(..., description="Authorization code from Google")):
+async def google_auth_callback(
+    request: Request,
+    code: str = Query(..., description="Authorization code from Google")
+):
     """
     Callback endpoint for Google OAuth 2.0. Exchanges the auth code for an access token and fetches user info.
     """
@@ -640,7 +661,7 @@ async def google_auth_callback(code: str = Query(..., description="Authorization
         role = "admin" if user_email in ADMIN_EMAILS else "user"
 
         # Create JWT session token
-        expire = datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRATION_HOURS)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=JWT_EXPIRATION_MINUTES)
         jwt_payload = {
             "sub": user_info.get("id"),
             "email": user_email,
@@ -652,12 +673,46 @@ async def google_auth_callback(code: str = Query(..., description="Authorization
         
         access_token = jwt.encode(jwt_payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
         
-        # Redirect back to the frontend with the token
-        redirect_url = f"{FRONTEND_URL}?token={access_token}"
-        return RedirectResponse(url=redirect_url)
+        # Determine redirect base. Fallback to FRONTEND_URL
+        referer = request.headers.get("referer")
+        redirect_base = FRONTEND_URL
+        if referer:
+            parsed_url = urllib.parse.urlparse(referer)
+            # Ensure referer is our own frontend domain, not Google's OAuth domain
+            if parsed_url.scheme and parsed_url.netloc and "google.com" not in parsed_url.netloc:
+                redirect_base = f"{parsed_url.scheme}://{parsed_url.netloc}"
+        
+        response = RedirectResponse(url=redirect_base)
+        is_secure = redirect_base.startswith("https")
+        response.set_cookie(
+            key="access_token",
+            value=access_token,
+            httponly=True,
+            secure=is_secure,
+            samesite="lax",
+            max_age=JWT_EXPIRATION_MINUTES * 60,
+            path="/"
+        )
+        return response
+
+@app.get("/auth/me", tags=["Authentication"])
+def get_current_user_profile(current_user: dict = Depends(get_current_user)):
+    """
+    Fetch the authenticated user's profile details.
+    """
+    return {
+        "name": current_user.get("name", "User"),
+        "email": current_user.get("email", ""),
+        "picture": current_user.get("picture", ""),
+        "role": current_user.get("role", "user")
+    }
 
 @app.post("/auth/logout", tags=["Authentication"])
-def logout(current_user: dict = Depends(get_current_user)):
+def logout(
+    request: Request,
+    response: Response,
+    current_user: dict = Depends(get_current_user)
+):
     """
     Optional logout endpoint. If the user is a guest, delete their guest index immediately.
     """
@@ -668,4 +723,13 @@ def logout(current_user: dict = Depends(get_current_user)):
             logger.info(f"Deleted guest index on logout: {index_name}")
         except Exception as e:
             logger.error(f"Failed to delete guest index {index_name} on logout: {e}")
+            
+    is_secure = request.url.scheme == "https"
+    response.delete_cookie(
+        key="access_token",
+        httponly=True,
+        secure=is_secure,
+        samesite="lax",
+        path="/"
+    )
     return {"message": "Logged out successfully"}

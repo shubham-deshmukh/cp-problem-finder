@@ -146,7 +146,7 @@ Copy `.env.example` to `.env` in the `backend/` directory and configure the vari
 | `GOOGLE_REDIRECT_URI` | Authorized callback url endpoint | `https://dsasearch.duckdns.org/auth/callback` |
 | `JWT_SECRET` | Secret key used to sign JWT session hashes | High-entropy string |
 | `JWT_ALGORITHM` | Algorithm used to generate JWTs | `HS256` |
-| `JWT_EXPIRATION_HOURS`| Validity window of the JWT session token | `24` |
+| `JWT_EXPIRATION_MINUTES`| Validity window of the JWT session token (in minutes) | `10` |
 | `FRONTEND_URL` | Redirect address where the React SPA runs | `https://cp-problem-finder.vercel.app` |
 | `ADMIN_EMAILS` | Comma-separated list of administrative emails | `shubham.coding841@gmail.com,` |
 

@@ -3,6 +3,7 @@ import styles from './Login.module.css';
 import { WelcomeModal } from './WelcomeModal';
 
 export function LoginPage() {
+  const API_URL = import.meta.env.VITE_API_URL || '';
   const [isLoading, setIsLoading] = useState(false);
   const [showWelcome, setShowWelcome] = useState(() => {
     return !localStorage.getItem('seen_welcome_guide');
@@ -22,14 +23,14 @@ export function LoginPage() {
       // Use window.top to break out of iframes (like those from URL cloaking services),
       // as OAuth providers like Google will block rendering inside an iframe.
       if (window.top) {
-        window.top.location.href = `${import.meta.env.VITE_API_URL}/auth/login`;
+        window.top.location.href = `${API_URL}/auth/login`;
       } else {
-        window.location.href = `${import.meta.env.VITE_API_URL}/auth/login`;
+        window.location.href = `${API_URL}/auth/login`;
       }
     } catch (error) {
       console.error('Login failed:', error);
       // Fallback in case accessing window.top is strictly blocked
-      window.location.href = `${import.meta.env.VITE_API_URL}/auth/login`;
+      window.location.href = `${API_URL}/auth/login`;
     } finally {
       setIsLoading(false);
     }
@@ -39,13 +40,13 @@ export function LoginPage() {
     setIsLoading(true);
     try {
       if (window.top) {
-        window.top.location.href = `${import.meta.env.VITE_API_URL}/auth/guest`;
+        window.top.location.href = `${API_URL}/auth/guest`;
       } else {
-        window.location.href = `${import.meta.env.VITE_API_URL}/auth/guest`;
+        window.location.href = `${API_URL}/auth/guest`;
       }
     } catch (error) {
       console.error('Guest login failed:', error);
-      window.location.href = `${import.meta.env.VITE_API_URL}/auth/guest`;
+      window.location.href = `${API_URL}/auth/guest`;
     } finally {
       setIsLoading(false);
     }

@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { jwtDecode } from 'jwt-decode';
 
 interface User {
   name: string;
@@ -11,51 +10,59 @@ interface User {
 interface AuthState {
   isAuthenticated: boolean;
   user: User | null;
-  login: (token: string) => void;
+  checkingAuth: boolean;
+  checkAuth: () => Promise<void>;
+  login: (user: User) => void;
   logout: () => Promise<void>;
+  handleSessionExpired: () => void;
 }
 
-const getUserFromToken = (token: string | null): User | null => {
-  if (!token) return null;
-  try {
-    const decoded: any = jwtDecode(token);
-    return {
-      name: decoded.name || 'User',
-      email: decoded.email || '',
-      picture: decoded.picture || '',
-      role: decoded.role || 'user',
-    };
-  } catch (error) {
-    return null;
-  }
-};
+const API_URL = import.meta.env.VITE_API_URL || '';
 
-const initialToken = localStorage.getItem('authToken');
 export const useAuthStore = create<AuthState>((set) => ({
-  // Initialize state based on localStorage so it persists across reloads
-  isAuthenticated: !!initialToken,
-  user: getUserFromToken(initialToken),
+  isAuthenticated: false,
+  user: null,
+  checkingAuth: true,
   
-  login: (token: string) => {
-    localStorage.setItem('authToken', token);
-    set({ isAuthenticated: true, user: getUserFromToken(token) });
+  checkAuth: async () => {
+    set({ checkingAuth: true });
+    try {
+      const response = await fetch(`${API_URL}/auth/me`, {
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const user = await response.json();
+        set({ isAuthenticated: true, user, checkingAuth: false });
+      } else {
+        set({ isAuthenticated: false, user: null, checkingAuth: false });
+      }
+    } catch (error) {
+      console.error('Failed to check auth status:', error);
+      set({ isAuthenticated: false, user: null, checkingAuth: false });
+    }
+  },
+  
+  login: (user: User) => {
+    set({ isAuthenticated: true, user });
   },
   
   logout: async () => {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      try {
-        await fetch(`${import.meta.env.VITE_API_URL}/auth/logout`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-      } catch (error) {
-        console.error('Failed to notify backend on logout:', error);
-      }
+    try {
+      await fetch(`${API_URL}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+    } catch (error) {
+      console.error('Failed to notify backend on logout:', error);
     }
-    localStorage.removeItem('authToken');
     set({ isAuthenticated: false, user: null });
+  },
+
+  handleSessionExpired: () => {
+    // Check if user is currently authenticated to avoid double-alerting
+    if (useAuthStore.getState().isAuthenticated) {
+      alert("Your session has expired. You will be redirected to the login page.");
+      set({ isAuthenticated: false, user: null });
+    }
   },
 }));

@@ -14,6 +14,8 @@ import { useAuthStore } from './stores/authStore';
 import { NotesDrawer } from './components/NotesDrawer';
 import { DemoTour, type TourProgress } from './components/DemoTour';
 
+const API_URL = import.meta.env.VITE_API_URL || '';
+
 function App() {
   const [searchValue, setSearchValue] = useState('');
   const [debouncedSearchValue, setDebouncedSearchValue] = useState('');
@@ -25,7 +27,8 @@ function App() {
   // Access the QueryClient to invalidate cache after mutations
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const login = useAuthStore((state) => state.login);
+  const checkingAuth = useAuthStore((state) => state.checkingAuth);
+  const checkAuth = useAuthStore((state) => state.checkAuth);
   const user = useAuthStore((state) => state.user);
   const isAdmin = user?.role === 'admin';
   const isGuest = user?.email === 'guest@example.com';
@@ -58,19 +61,10 @@ function App() {
     });
   };
 
-
-
-  // Intercept OAuth token from URL parameters when backend redirects back
+  // Perform initial authentication status check
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
-    
-    if (token) {
-      login(token);
-      // Clean up the URL to remove the token so it isn't visible/bookmarked
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }, [login]);
+    checkAuth();
+  }, [checkAuth]);
 
   // Debounce search input
   useEffect(() => {
@@ -85,12 +79,16 @@ function App() {
     queryKey: ['problems', debouncedSearchValue],
     queryFn: async ({ signal }) => {
       const encodedQuery = encodeURIComponent(debouncedSearchValue);
-      const token = localStorage.getItem('authToken');
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/search?q=${encodedQuery}&limit=8&offset=0`, { 
+      const response = await fetch(`${API_URL}/search?q=${encodedQuery}&limit=8&offset=0`, { 
         signal,
-        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        credentials: 'include'
       });
-      if (!response.ok) throw new Error('Failed to fetch data');
+      if (!response.ok) {
+        if (response.status === 401) {
+          useAuthStore.getState().handleSessionExpired();
+        }
+        throw new Error('Failed to fetch data');
+      }
       const data = await response.json();
       return data || [];
     },
@@ -112,17 +110,19 @@ function App() {
   // Mutation for adding a problem
   const addMutation = useMutation({
     mutationFn: async (problemData: ProblemData) => {
-        const token = localStorage.getItem('authToken');
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/problems`, {
+        const response = await fetch(`${API_URL}/problems`, {
           method: 'POST',
           headers: { 
-            'Content-Type': 'application/json',
-            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify(problemData),
+          credentials: 'include'
         });
   
         if (!response.ok) {
+          if (response.status === 401) {
+            useAuthStore.getState().handleSessionExpired();
+          }
           let errorMessage = 'Failed to add problem. Please try again.';
           try {
             const errorData = await response.json();
@@ -165,17 +165,19 @@ function App() {
   const updateMutation = useMutation({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mutationFn: async ({ id, updatedData }: { id: number, updatedData: any }) => {
-        const token = localStorage.getItem('authToken');
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/problems/${id}`, {
+        const response = await fetch(`${API_URL}/problems/${id}`, {
             method: 'PUT',
             headers: { 
-              'Content-Type': 'application/json',
-              ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+              'Content-Type': 'application/json'
             },
             body: JSON.stringify(updatedData),
+            credentials: 'include'
         });
         
         if (!response.ok) {
+            if (response.status === 401) {
+              useAuthStore.getState().handleSessionExpired();
+            }
             let errorMessage = 'Failed to update problem. Please try again.';
             try {
                 const errorData = await response.json();
@@ -221,12 +223,14 @@ function App() {
   // Mutation for deleting a problem
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-        const token = localStorage.getItem('authToken');
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/problems/${id}`, { 
+        const response = await fetch(`${API_URL}/problems/${id}`, { 
           method: 'DELETE',
-          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+          credentials: 'include'
         });
         if (!response.ok) {
+            if (response.status === 401) {
+              useAuthStore.getState().handleSessionExpired();
+            }
             let errorMessage = 'Failed to delete problem. Please try again.';
             try {
                 const errorData = await response.json();
@@ -260,6 +264,22 @@ function App() {
           deleteMutation.mutate(id);
       }
   };
+
+  if (checkingAuth) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        fontFamily: 'sans-serif',
+        background: isDarkMode ? '#1e1e1e' : '#f9f9f9',
+        color: isDarkMode ? '#fff' : '#333'
+      }}>
+        <div style={{ fontSize: '1.2rem', fontWeight: 500 }}>Checking session status...</div>
+      </div>
+    );
+  }
 
   return (
     <>

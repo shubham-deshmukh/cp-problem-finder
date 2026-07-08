@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from './AddProblemModal.module.css';
 import { type ProblemData, type DifficultyLevel } from '../types';
+import { useAuthStore } from '../stores/authStore';
 
 interface AddProblemModalProps {
   isOpen: boolean;
@@ -8,6 +9,8 @@ interface AddProblemModalProps {
   onClose: () => void;
   onSubmit: (problem: ProblemData) => void;
 }
+
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 const AddProblemModal: React.FC<AddProblemModalProps> = ({ isOpen, isLoading = false, onClose, onSubmit }) => {
   const [link, setLink] = useState('');
@@ -30,12 +33,15 @@ const AddProblemModal: React.FC<AddProblemModalProps> = ({ isOpen, isLoading = f
       const fetchTags = async () => {
         setIsFetchingTags(true);
         try {
-          // Note: Update this URL to match your actual backend API endpoint for tags
-          const token = localStorage.getItem('authToken');
-          const response = await fetch(`${import.meta.env.VITE_API_URL}/tags`, {
-            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+          const response = await fetch(`${API_URL}/tags`, {
+            credentials: 'include'
           });
-          if (!response.ok) throw new Error('Failed to fetch tags');
+          if (!response.ok) {
+            if (response.status === 401) {
+              useAuthStore.getState().handleSessionExpired();
+            }
+            throw new Error('Failed to fetch tags');
+          }
           const data = await response.json();
           setAvailableTags(data || []);
         } catch (error) {
