@@ -12,12 +12,15 @@ import { LoginPage } from './components/Login';
 import { useAuthStore } from './stores/authStore';
 import { NotesDrawer } from './components/NotesDrawer';
 import { DemoTour, type TourProgress } from './components/DemoTour';
+import { CustomSelect } from './components/ui/CustomSelect';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
 function App() {
   const [searchValue, setSearchValue] = useState('');
   const [debouncedSearchValue, setDebouncedSearchValue] = useState('');
+  const [selectedPlatform, setSelectedPlatform] = useState<string>('All Platforms');
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string>('All Difficulties');
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isAddProblemModalOpen, setIsAddProblemModalOpen] = useState(false);
   const [editingProblem, setEditingProblem] = useState<Problem | null>(null);
@@ -75,10 +78,18 @@ function App() {
 
   // Fetch problems automatically based on query parameters
   const { data: problems = [], isLoading } = useQuery({
-    queryKey: ['problems', debouncedSearchValue],
+    queryKey: ['problems', debouncedSearchValue, selectedPlatform, selectedDifficulty],
     queryFn: async ({ signal }) => {
       const encodedQuery = encodeURIComponent(debouncedSearchValue);
-      const response = await fetch(`${API_URL}/search?q=${encodedQuery}&limit=8&offset=0`, { 
+      let url = `${API_URL}/search?q=${encodedQuery}&limit=8&offset=0`;
+      if (selectedPlatform && selectedPlatform !== 'All Platforms') {
+        url += `&platform=${encodeURIComponent(selectedPlatform)}`;
+      }
+      if (selectedDifficulty && selectedDifficulty !== 'All Difficulties') {
+        url += `&difficulty=${encodeURIComponent(selectedDifficulty)}`;
+      }
+      
+      const response = await fetch(url, { 
         signal,
         credentials: 'include'
       });
@@ -148,7 +159,7 @@ function App() {
     },
     onSuccess: (newProblem) => {
         // Instantly update UI cache
-        queryClient.setQueryData(['problems', debouncedSearchValue], (old: Problem[] | undefined) => {
+        queryClient.setQueryData(['problems', debouncedSearchValue, selectedPlatform, selectedDifficulty], (old: Problem[] | undefined) => {
             return old ? [newProblem, ...old] : [newProblem];
         });
         // We invalidate the cache to ensure all query keys refetch fresh data
@@ -197,7 +208,7 @@ function App() {
     },
     onSuccess: (updatedProblem, variables) => {
         // Instantly update UI cache
-        queryClient.setQueryData(['problems', debouncedSearchValue], (old: Problem[] | undefined) => {
+        queryClient.setQueryData(['problems', debouncedSearchValue, selectedPlatform, selectedDifficulty], (old: Problem[] | undefined) => {
             return old ? old.map(p => p.id === updatedProblem.id ? updatedProblem : p) : [];
         });
         // We invalidate the cache to ensure all query keys refetch fresh data
@@ -250,7 +261,7 @@ function App() {
     },
     onSuccess: (deletedId) => {
         // Instantly update UI cache
-        queryClient.setQueryData(['problems', debouncedSearchValue], (old: Problem[] | undefined) => {
+        queryClient.setQueryData(['problems', debouncedSearchValue, selectedPlatform, selectedDifficulty], (old: Problem[] | undefined) => {
             return old ? old.filter(p => p.id !== deletedId) : [];
         });
         // We invalidate the cache to ensure all query keys refetch fresh data
@@ -300,15 +311,39 @@ function App() {
           <Header onThemeToggle={toggleTheme} isDarkMode={isDarkMode} />
           <div className="flex-1 flex flex-col p-4 md:p-6 gap-5 max-w-7xl mx-auto w-full">
             {isGuest && <DemoTour progress={tourProgress} />}
-            <SearchBar 
-              searchValue={searchValue} 
-              onSearchChange={(value) => {
-                setSearchValue(value);
-                if (isGuest && value.trim().length > 0 && !tourProgress.search) {
-                  completeStep('search');
-                }
-              }} 
-            />
+            <div className="flex flex-col sm:flex-row gap-3 items-center justify-between w-full max-w-5xl mx-auto">
+              <div className="flex-1 w-full">
+                <SearchBar 
+                  searchValue={searchValue} 
+                  onSearchChange={(value) => {
+                    setSearchValue(value);
+                    if (isGuest && value.trim().length > 0 && !tourProgress.search) {
+                      completeStep('search');
+                    }
+                  }} 
+                />
+              </div>
+              <div className="flex gap-3 w-full sm:w-auto shrink-0 select-none">
+                {/* Platform select dropdown filter */}
+                <div className="w-full sm:w-[160px]">
+                  <CustomSelect
+                    value={selectedPlatform}
+                    placeholder="Platform"
+                    options={['All Platforms', 'Leetcode', 'Codeforces', 'CSES', 'Atcoder', 'Codechef']}
+                    onChange={setSelectedPlatform}
+                  />
+                </div>
+                {/* Difficulty select dropdown filter */}
+                <div className="w-full sm:w-[150px]">
+                  <CustomSelect
+                    value={selectedDifficulty}
+                    placeholder="Difficulty"
+                    options={['All Difficulties', 'Easy', 'Medium', 'High']}
+                    onChange={setSelectedDifficulty}
+                  />
+                </div>
+              </div>
+            </div>
             {isLoading ? (
               <div style={{ textAlign: 'center', padding: '2rem' }}>Loading problems...</div>
             ) : (
