@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { type ProblemData, type DifficultyLevel } from '../types';
 import { useAuthStore } from '../stores/authStore';
 import { Button } from './ui/button';
@@ -26,6 +26,7 @@ export const AddProblemModal: React.FC<AddProblemModalProps> = ({
   const [tags, setTags] = useState<string[]>([]);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [isFetchingTags, setIsFetchingTags] = useState(false);
+  const linkInputRef = useRef<HTMLInputElement>(null);
 
   // Reset fields when the modal is opened
   useEffect(() => {
@@ -34,6 +35,11 @@ export const AddProblemModal: React.FC<AddProblemModalProps> = ({
       setPlatform('Leetcode');
       setDifficulty('Easy');
       setTags([]);
+
+      // Auto-focus the input
+      setTimeout(() => {
+        linkInputRef.current?.focus();
+      }, 80);
 
       const fetchTags = async () => {
         setIsFetchingTags(true);
@@ -113,6 +119,7 @@ export const AddProblemModal: React.FC<AddProblemModalProps> = ({
               Problem Link
             </label>
             <Input 
+              ref={linkInputRef}
               type="url" 
               id="link" 
               value={link}

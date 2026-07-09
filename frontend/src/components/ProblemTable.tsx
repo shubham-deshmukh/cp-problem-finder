@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileText, Pencil, Trash2 } from 'lucide-react';
+import { FileText, Pencil, Trash2, Search } from 'lucide-react';
 import { Tag } from './Tag';
 import { type Problem } from '../types';
 import { Button } from './ui/button';
@@ -21,6 +21,20 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
   isAdmin,
 }) => {
   
+  if (problems.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center text-center p-12 border border-dashed border-border rounded-xl bg-card my-4 font-geist text-foreground animate-in fade-in duration-200">
+        <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-3 select-none">
+          <Search className="h-5 w-5 text-muted-foreground" />
+        </div>
+        <h3 className="text-sm font-semibold text-foreground font-space-grotesk">No matching problems</h3>
+        <p className="text-xs text-muted-foreground mt-1.5 max-w-[280px] leading-relaxed select-none">
+          Try adjusting your search terms or checking for typos.
+        </p>
+      </div>
+    );
+  }
+
   const difficultyStyles: Record<string, string> = {
     easy: 'text-emerald-500 bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/20',
     medium: 'text-amber-500 bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/20',
