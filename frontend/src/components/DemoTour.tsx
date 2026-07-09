@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import styles from './DemoTour.module.css';
+import React, { useState } from 'react';
+import { Search, Sparkles, PartyPopper } from 'lucide-react';
+import { Button } from './ui/button';
 
 export interface TourProgress {
   search: boolean;
@@ -12,7 +13,7 @@ interface DemoTourProps {
   progress: TourProgress;
 }
 
-export function DemoTour({ progress }: DemoTourProps) {
+export const DemoTour: React.FC<DemoTourProps> = ({ progress }) => {
   const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
     return sessionStorage.getItem('demo_tour_collapsed') === 'true';
   });
@@ -69,122 +70,183 @@ export function DemoTour({ progress }: DemoTourProps) {
 
   if (isCollapsed) {
     return (
-      <div className={styles['tour-collapsed-pill']} onClick={toggleCollapse}>
-        <div className={styles['collapsed-info']}>
-          <span className={styles.sparkle}>⚡</span>
+      <div 
+        className="flex items-center justify-between bg-card border border-primary/25 rounded-xl px-5 py-3 mb-6 shadow-xs cursor-pointer hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 font-geist text-foreground select-none" 
+        onClick={toggleCollapse}
+      >
+        <div className="flex items-center gap-2.5 text-xs sm:text-sm font-bold text-foreground">
+          <Sparkles className="h-4 w-4 text-[#ffa116]" />
           <span>Demo Workspace Guide ({completedCount}/{totalSteps} completed)</span>
         </div>
-        <span className={styles['collapsed-expand-text']}>Expand Guide ▾</span>
+        <span className="text-[10px] sm:text-xs font-bold text-primary hover:underline">
+          Expand Guide ▾
+        </span>
       </div>
     );
   }
 
   return (
-    <div className={styles['tour-card']}>
-      <div className={styles['tour-header']}>
-        <h2 className={styles['tour-title']}>
-          <span>⚡</span> Demo Workspace Guide
+    <div className="relative bg-card border border-border rounded-xl p-5 md:p-6 mb-6 shadow-xs overflow-hidden transition-all duration-300 before:content-[''] before:absolute before:top-0 before:left-0 before:right-0 before:h-[3px] before:bg-linear-to-r before:from-[#ffa116] before:via-[#ff9345] before:to-[#ff3d00] font-geist text-foreground">
+      
+      {/* Header */}
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="flex items-center gap-2 text-sm sm:text-base font-bold tracking-tight font-space-grotesk text-foreground">
+          <Sparkles className="h-4 w-4 text-[#ffa116]" /> Demo Workspace Guide
         </h2>
-        <button className={styles['tour-toggle-btn']} onClick={toggleCollapse}>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="text-xs font-bold text-primary hover:bg-primary/10 rounded-md py-1 h-auto cursor-pointer border-0" 
+          onClick={toggleCollapse}
+        >
           Collapse Guide ▴
-        </button>
+        </Button>
       </div>
 
-      <p className={styles['tour-description']}>
+      <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-5">
         Welcome to the isolated guest sandbox! Try performing the actions below to see how 
         <strong> CP Problem Finder</strong> helps you organize and query Data Structures & Algorithms patterns.
       </p>
 
-      <div className={styles.checklist}>
+      {/* Checklist */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+        
         {/* Step 1: Search */}
-        <div className={`${styles['task-item']} ${progress.search ? styles.completed : ''}`}>
-          <div className={styles['task-header']}>
-            <span className={styles['status-icon']}>{progress.search ? '✅' : '⚪'}</span>
-            <div>
-              <h3 className={styles['task-title']}>1. Fuzzy Search</h3>
-              <p className={styles['task-desc']}>Type an algorithm or keyword (e.g., "graph", "binary") in the search bar.</p>
+        <div className={`bg-muted/10 border rounded-xl p-4 flex flex-col justify-between gap-3 transition-all duration-200 hover:-translate-y-0.5 ${
+          progress.search ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-border/60 hover:border-primary/20'
+        }`}>
+          <div className="flex items-start gap-2.5">
+            <span className="text-base shrink-0 select-none">{progress.search ? '✅' : '⚪'}</span>
+            <div className="min-w-0">
+              <h3 className="text-xs sm:text-sm font-semibold text-foreground truncate">1. Fuzzy Search</h3>
+              <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+                Type an algorithm or keyword (e.g., "graph") in the search bar.
+              </p>
             </div>
           </div>
           {!progress.search && (
-            <button className={styles['locate-btn']} onClick={(e) => handleLocate(e, 'tour-search-bar')}>
-              🔍 Where is this?
-            </button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-7 text-[10px] font-bold tracking-wider uppercase cursor-pointer self-start gap-1 rounded-md px-2.5 py-1 border-border/80 text-muted-foreground hover:text-primary hover:border-primary/40 hover:bg-primary/5"
+              onClick={(e) => handleLocate(e, 'tour-search-bar')}
+            >
+              <Search className="h-3 w-3" /> Locate
+            </Button>
           )}
         </div>
 
         {/* Step 2: Theme */}
-        <div className={`${styles['task-item']} ${progress.theme ? styles.completed : ''}`}>
-          <div className={styles['task-header']}>
-            <span className={styles['status-icon']}>{progress.theme ? '✅' : '⚪'}</span>
-            <div>
-              <h3 className={styles['task-title']}>2. Toggle Theme</h3>
-              <p className={styles['task-desc']}>Toggle between Light and Dark mode using the sun/moon button.</p>
+        <div className={`bg-muted/10 border rounded-xl p-4 flex flex-col justify-between gap-3 transition-all duration-200 hover:-translate-y-0.5 ${
+          progress.theme ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-border/60 hover:border-primary/20'
+        }`}>
+          <div className="flex items-start gap-2.5">
+            <span className="text-base shrink-0 select-none">{progress.theme ? '✅' : '⚪'}</span>
+            <div className="min-w-0">
+              <h3 className="text-xs sm:text-sm font-semibold text-foreground truncate">2. Toggle Theme</h3>
+              <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+                Toggle between Light and Dark mode using the sun/moon button.
+              </p>
             </div>
           </div>
           {!progress.theme && (
-            <button className={styles['locate-btn']} onClick={(e) => handleLocate(e, 'tour-theme-btn')}>
-              ☀️ Where is this?
-            </button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-7 text-[10px] font-bold tracking-wider uppercase cursor-pointer self-start gap-1 rounded-md px-2.5 py-1 border-border/80 text-muted-foreground hover:text-primary hover:border-primary/40 hover:bg-primary/5"
+              onClick={(e) => handleLocate(e, 'tour-theme-btn')}
+            >
+              <Search className="h-3 w-3" /> Locate
+            </Button>
           )}
         </div>
 
         {/* Step 3: Add Problem */}
-        <div className={`${styles['task-item']} ${progress.add ? styles.completed : ''}`}>
-          <div className={styles['task-header']}>
-            <span className={styles['status-icon']}>{progress.add ? '✅' : '⚪'}</span>
-            <div>
-              <h3 className={styles['task-title']}>3. Add Problem</h3>
-              <p className={styles['task-desc']}>Click the floating button in the bottom corner and submit a problem URL.</p>
+        <div className={`bg-muted/10 border rounded-xl p-4 flex flex-col justify-between gap-3 transition-all duration-200 hover:-translate-y-0.5 ${
+          progress.add ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-border/60 hover:border-primary/20'
+        }`}>
+          <div className="flex items-start gap-2.5">
+            <span className="text-base shrink-0 select-none">{progress.add ? '✅' : '⚪'}</span>
+            <div className="min-w-0">
+              <h3 className="text-xs sm:text-sm font-semibold text-foreground truncate">3. Add Problem</h3>
+              <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+                Click the floating button in the corner and submit a problem URL.
+              </p>
             </div>
           </div>
           {!progress.add && (
-            <button className={styles['locate-btn']} onClick={(e) => handleLocate(e, 'tour-add-btn')}>
-              ➕ Where is this?
-            </button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-7 text-[10px] font-bold tracking-wider uppercase cursor-pointer self-start gap-1 rounded-md px-2.5 py-1 border-border/80 text-muted-foreground hover:text-primary hover:border-primary/40 hover:bg-primary/5"
+              onClick={(e) => handleLocate(e, 'tour-add-btn')}
+            >
+              <Search className="h-3 w-3" /> Locate
+            </Button>
           )}
         </div>
 
         {/* Step 4: Write Notes */}
-        <div className={`${styles['task-item']} ${progress.notes ? styles.completed : ''}`}>
-          <div className={styles['task-header']}>
-            <span className={styles['status-icon']}>{progress.notes ? '✅' : '⚪'}</span>
-            <div>
-              <h3 className={styles['task-title']}>4. Write Revision Notes</h3>
-              <p className={styles['task-desc']}>Click the 📝 icon on any problem, write notes, and save changes.</p>
+        <div className={`bg-muted/10 border rounded-xl p-4 flex flex-col justify-between gap-3 transition-all duration-200 hover:-translate-y-0.5 ${
+          progress.notes ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-border/60 hover:border-primary/20'
+        }`}>
+          <div className="flex items-start gap-2.5">
+            <span className="text-base shrink-0 select-none">{progress.notes ? '✅' : '⚪'}</span>
+            <div className="min-w-0">
+              <h3 className="text-xs sm:text-sm font-semibold text-foreground truncate">4. Write Revision Notes</h3>
+              <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+                Click the document icon on any problem, write notes, and save changes.
+              </p>
             </div>
           </div>
           {!progress.notes && (
-            <button className={styles['locate-btn']} onClick={(e) => handleLocate(e, 'tour-notes-btn')}>
-              📝 Where is this?
-            </button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-7 text-[10px] font-bold tracking-wider uppercase cursor-pointer self-start gap-1 rounded-md px-2.5 py-1 border-border/80 text-muted-foreground hover:text-primary hover:border-primary/40 hover:bg-primary/5"
+              onClick={(e) => handleLocate(e, 'tour-notes-btn')}
+            >
+              <Search className="h-3 w-3" /> Locate
+            </Button>
           )}
         </div>
       </div>
 
-      <div className={styles['progress-container']}>
-        <span className={styles['progress-label']}>Completion Progress: {completedCount}/{totalSteps}</span>
-        <div className={styles['progress-bar-wrapper']}>
+      {/* Progress */}
+      <div className="flex items-center gap-4 mt-6 pt-4 border-t border-border select-none">
+        <span className="text-xs font-semibold text-muted-foreground shrink-0">
+          Completion Progress: {completedCount}/{totalSteps}
+        </span>
+        <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
           <div 
-            className={styles['progress-bar-fill']} 
+            className="h-full bg-linear-to-r from-[#ffa116] via-[#ff9345] to-[#ff3d00] rounded-full transition-all duration-500" 
             style={{ width: `${progressPercent}%` }}
           />
         </div>
       </div>
 
+      {/* Celebration Panel */}
       {isAllCompleted && (
-        <div className={styles.celebration}>
-          <div className={styles['celebration-content']}>
-            <h4 className={styles['celebration-title']}>🎉 Tour Complete!</h4>
-            <p className={styles['celebration-desc']}>
+        <div className="bg-linear-to-br from-[#ffa116]/5 via-[#ff9345]/5 to-transparent border border-[#ff9345]/20 rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <div className="flex-1">
+            <h4 className="text-xs sm:text-sm font-bold text-foreground flex items-center gap-1.5 font-space-grotesk">
+              <PartyPopper className="h-4 w-4 text-[#ffa116]" /> Tour Complete!
+            </h4>
+            <p className="text-[11px] sm:text-xs text-muted-foreground mt-1 leading-relaxed">
               You've successfully explored the core features of the CP Problem Finder sandbox.
               Feel free to keep testing, or log in with Google to start cataloging your real DSA library!
             </p>
           </div>
-          <button className={styles['dismiss-btn']} onClick={handleDismiss}>
+          <Button 
+            onClick={handleDismiss} 
+            size="sm" 
+            className="cursor-pointer shrink-0 min-w-[125px] font-semibold text-xs rounded-full"
+          >
             Dismiss Guide
-          </button>
+          </Button>
         </div>
       )}
     </div>
   );
-}
+};
+export default DemoTour;

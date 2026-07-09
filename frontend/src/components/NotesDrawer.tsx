@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import styles from './NotesDrawer.module.css';
+import { Pencil, X } from 'lucide-react';
 import { type Problem } from '../types';
+import { Button } from './ui/button';
 
 interface NotesDrawerProps {
   isOpen: boolean;
@@ -73,7 +74,7 @@ export const NotesDrawer: React.FC<NotesDrawerProps> = ({
   // Simple, robust markdown parser to avoid external dependency issues
   const renderMarkdown = (md: string) => {
     if (!md.trim()) {
-      return `<p class="${styles['no-notes']}">No notes or hints have been added to this problem yet.</p>`;
+      return `<p class="text-muted-foreground/60 italic text-sm m-0">No notes or hints have been added to this problem yet.</p>`;
     }
 
     const lines = md.split(/\r?\n/);
@@ -97,19 +98,19 @@ export const NotesDrawer: React.FC<NotesDrawerProps> = ({
     const parseInline = (text: string) => {
       let html = escapeHtml(text);
       // Inline code
-      html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+      html = html.replace(/`([^`]+)`/g, '<code class="bg-muted text-xs font-mono px-1.5 py-0.5 rounded border border-border/50">$1</code>');
       // Bold (restricted to same line)
-      html = html.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+      html = html.replace(/\*\*([^*\n]+)\*\*/g, '<strong class="font-bold text-foreground">$1</strong>');
       // Italics (restricted to same line)
-      html = html.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
+      html = html.replace(/\*([^*\n]+)\*/g, '<em class="italic text-foreground/90">$1</em>');
       // Links
-      html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+      html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline underline-offset-2">$1</a>');
       return html;
     };
 
     const closeList = () => {
       if (inList) {
-        blocks.push(`<ul>${listItems.join('')}</ul>`);
+        blocks.push(`<ul class="list-disc pl-5 mb-4 flex flex-col gap-1.5 text-sm">${listItems.join('')}</ul>`);
         inList = false;
         listItems = [];
       }
@@ -117,7 +118,7 @@ export const NotesDrawer: React.FC<NotesDrawerProps> = ({
 
     const closeParagraph = () => {
       if (currentParagraph.length > 0) {
-        blocks.push(`<p>${currentParagraph.join('<br />')}</p>`);
+        blocks.push(`<p class="mb-4 text-sm leading-relaxed">${currentParagraph.join('<br />')}</p>`);
         currentParagraph = [];
       }
     };
@@ -127,7 +128,7 @@ export const NotesDrawer: React.FC<NotesDrawerProps> = ({
 
       if (inCodeBlock) {
         if (line.trim() === '```') {
-          blocks.push(`<pre><code>${codeLines.join('\n')}</code></pre>`);
+          blocks.push(`<pre class="bg-muted/50 border border-border/80 rounded-lg p-3 overflow-x-auto mb-4 font-mono text-xs text-foreground"><code>${codeLines.join('\n')}</code></pre>`);
           inCodeBlock = false;
           codeLines = [];
         } else {
@@ -148,7 +149,7 @@ export const NotesDrawer: React.FC<NotesDrawerProps> = ({
       if (/^\s*---+\s*$/.test(line)) {
         closeList();
         closeParagraph();
-        blocks.push('<hr />');
+        blocks.push('<hr class="border-t border-border my-4" />');
         continue;
       }
 
@@ -159,7 +160,12 @@ export const NotesDrawer: React.FC<NotesDrawerProps> = ({
         const level = line.match(/^(#+)/)?.[1].length || 1;
         const headingText = line.replace(/^#+\s+/, '');
         const hTag = level === 1 ? 'h3' : level === 2 ? 'h4' : 'h5';
-        blocks.push(`<${hTag}>${parseInline(headingText)}</${hTag}>`);
+        const classes = level === 1 
+          ? 'text-lg font-bold text-foreground mt-5 mb-2.5 font-space-grotesk' 
+          : level === 2 
+            ? 'text-base font-bold text-foreground mt-4 mb-2 font-space-grotesk' 
+            : 'text-sm font-semibold text-foreground mt-3.5 mb-1.5';
+        blocks.push(`<${hTag} class="${classes}">${parseInline(headingText)}</${hTag}>`);
         continue;
       }
 
@@ -168,7 +174,7 @@ export const NotesDrawer: React.FC<NotesDrawerProps> = ({
         closeParagraph();
         inList = true;
         const itemText = line.replace(/^\s*[-*]\s+/, '');
-        listItems.push(`<li>${parseInline(itemText)}</li>`);
+        listItems.push(`<li class="leading-relaxed">${parseInline(itemText)}</li>`);
         continue;
       }
 
@@ -188,112 +194,155 @@ export const NotesDrawer: React.FC<NotesDrawerProps> = ({
     closeList();
     closeParagraph();
     if (inCodeBlock && codeLines.length > 0) {
-      blocks.push(`<pre><code>${codeLines.join('\n')}</code></pre>`);
+      blocks.push(`<pre class="bg-muted/50 border border-border/80 rounded-lg p-3 overflow-x-auto mb-4 font-mono text-xs text-foreground"><code>${codeLines.join('\n')}</code></pre>`);
     }
 
     return blocks.join('\n');
   };
 
+  const difficultyStyles: Record<string, string> = {
+    easy: 'text-emerald-500 bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/20',
+    medium: 'text-amber-500 bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/20',
+    high: 'text-rose-500 bg-rose-500/10 dark:bg-rose-500/15 border border-rose-500/20',
+  };
+  const diffKey = problem.difficulty.toLowerCase();
+  const diffClass = difficultyStyles[diffKey] || difficultyStyles.easy;
+
   return (
-    <div className={`${styles['drawer-overlay']} ${isOpen ? styles['open'] : ''}`}>
+    <>
+      {/* Overlay Backdrop */}
+      <div 
+        className={`fixed inset-0 bg-neutral-950/40 backdrop-blur-xs z-[99] transition-all duration-300 ${
+          isOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'
+        }`}
+      />
+
+      {/* Drawer Container */}
       <div 
         ref={drawerRef} 
-        className={`${styles['drawer-content']} ${isOpen ? styles['open'] : ''}`}
+        className={`fixed top-0 right-0 w-full max-w-[480px] h-full bg-card border-l border-border shadow-2xl flex flex-col z-[100] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          isOpen ? 'translate-x-0' : 'translate-x-full'
+        } font-geist text-foreground`}
       >
-        <div className={styles['drawer-header']}>
-          <div className={styles['header-title-area']}>
-            <span className={styles['platform-badge']}>
+        {/* Header */}
+        <div className="p-6 border-b border-border flex justify-between items-start gap-4 shrink-0">
+          <div className="flex flex-col gap-2.5 min-w-0">
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               <img 
                 src={`/icons/${problem.platform.toLowerCase()}.png`} 
                 alt={problem.platform}
-                className={styles['platform-icon']}
+                className="w-4 h-4 object-contain"
                 onError={(e) => {
                   e.currentTarget.src = '/icons/default.png';
                 }}
               />
               {problem.platform}
             </span>
-            <h2 className={styles['problem-title']}>
-              <a href={problem.link} target="_blank" rel="noopener noreferrer">
+            <h2 className="text-lg font-bold tracking-tight text-foreground font-space-grotesk leading-snug">
+              <a href={problem.link} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors hover:underline">
                 {problem.title}
               </a>
             </h2>
-            <span className={`${styles['difficulty-badge']} ${styles[problem.difficulty.toLowerCase()]}`}>
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider uppercase self-start ${diffClass}`}>
               {problem.difficulty}
             </span>
           </div>
-          <button onClick={onClose} className={styles['close-btn']} aria-label="Close notes">
-            &times;
-          </button>
+          <Button 
+            onClick={onClose} 
+            variant="ghost" 
+            size="icon" 
+            className="h-8 w-8 text-muted-foreground hover:text-foreground cursor-pointer flex items-center justify-center p-0 rounded-lg hover:bg-muted/50 transition-colors border-0" 
+            aria-label="Close notes"
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </div>
 
-        <div className={styles['drawer-body']}>
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4">
           {isAdmin && (
-            <div className={styles['admin-toolbar']}>
+            <div className="flex justify-between items-center pb-3 border-b border-dashed border-border/80 shrink-0">
               {!isEditing ? (
-                <button 
+                <Button 
                   onClick={() => {
                     setIsEditing(true);
                     setActiveTab('write');
                   }} 
-                  className={styles['btn-edit']}
+                  variant="secondary"
+                  className="rounded-full gap-2 px-4 py-1.5 h-8 font-semibold text-xs cursor-pointer shadow-xs"
                 >
-                  ✏️ Edit Notes
-                </button>
+                  <Pencil className="h-3 w-3" /> Edit Notes
+                </Button>
               ) : (
-                <div className={styles['tab-group']}>
+                <div className="flex bg-muted/40 p-0.5 rounded-full border border-border">
                   <button 
                     onClick={() => setActiveTab('write')} 
-                    className={`${styles['tab-btn']} ${activeTab === 'write' ? styles['tab-active'] : ''}`}
+                    className={`px-4 py-1 text-xs font-semibold rounded-full transition-all border-0 bg-transparent cursor-pointer ${
+                      activeTab === 'write' ? 'bg-primary text-primary-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'
+                    }`}
                   >
                     Write
                   </button>
                   <button 
                     onClick={() => setActiveTab('preview')} 
-                    className={`${styles['tab-btn']} ${activeTab === 'preview' ? styles['tab-active'] : ''}`}
+                    className={`px-4 py-1 text-xs font-semibold rounded-full transition-all border-0 bg-transparent cursor-pointer ${
+                      activeTab === 'preview' ? 'bg-primary text-primary-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'
+                    }`}
                   >
                     Preview
                   </button>
                 </div>
               )}
 
-              {isSaving && <span className={styles['saving-indicator']}>Saving changes...</span>}
+              {isSaving && <span className="text-xs text-muted-foreground/60 italic animate-pulse">Saving changes...</span>}
             </div>
           )}
 
-          <div className={styles['note-content-container']}>
+          {/* Content */}
+          <div className="flex-1 flex flex-col min-h-0">
             {isEditing && activeTab === 'write' ? (
-              <div className={styles['editor-wrapper']}>
+              <div className="flex flex-col gap-2 flex-1 min-h-0">
                 <textarea
                   value={noteText}
                   onChange={(e) => setNoteText(e.target.value)}
-                  className={styles['note-textarea']}
+                  className="flex-1 w-full min-h-[250px] bg-muted/20 border border-input focus:border-primary focus:ring-1 focus:ring-ring rounded-lg p-3 text-sm outline-none text-foreground placeholder:text-muted-foreground/50 resize-none leading-relaxed transition-all"
                   placeholder="Add notes, corner cases, code snippets, or editorials for this problem. Markdown is supported..."
                 />
-                <div className={styles['editor-cheatsheet']}>
+                <div className="text-[11px] text-muted-foreground/60 flex gap-1 items-center shrink-0">
                   <span>💡 <strong>Markdown hints:</strong> **bold**, `code`, # Heading, - List, [Link](url)</span>
                 </div>
               </div>
             ) : (
               <div 
-                className={styles['markdown-preview']}
+                className="markdown-preview text-foreground overflow-y-auto leading-relaxed select-text"
                 dangerouslySetInnerHTML={{ __html: renderMarkdown(noteText) }}
               />
             )}
           </div>
         </div>
 
+        {/* Footer */}
         {isEditing && (
-          <div className={styles['drawer-footer']}>
-            <button onClick={handleCancel} className={styles['btn-cancel']} disabled={isSaving}>
+          <div className="p-6 border-t border-border flex justify-end gap-3 shrink-0">
+            <Button 
+              onClick={handleCancel} 
+              variant="outline" 
+              className="rounded-full cursor-pointer h-9 px-5 py-1.5 text-xs font-semibold"
+              disabled={isSaving}
+            >
               Cancel
-            </button>
-            <button onClick={handleSave} className={styles['btn-save']} disabled={isSaving}>
+            </Button>
+            <Button 
+              onClick={handleSave} 
+              className="rounded-full cursor-pointer h-9 px-5 py-1.5 text-xs font-semibold"
+              disabled={isSaving}
+            >
               {isSaving ? 'Saving...' : 'Save Notes'}
-            </button>
+            </Button>
           </div>
         )}
       </div>
-    </div>
+    </>
   );
 };
+export default NotesDrawer;
