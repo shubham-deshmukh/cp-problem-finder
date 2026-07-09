@@ -58,7 +58,7 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
                         e.currentTarget.onerror = null;
                       }}
                     />
-                    <span className="font-semibold text-foreground text-xs sm:text-sm hidden sm:inline">
+                    <span className="font-semibold text-muted-foreground text-xs sm:text-sm hidden sm:inline">
                       {problem.platform}
                     </span>
                   </div>
@@ -70,7 +70,7 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
                       href={problem.link} 
                       target="_blank" 
                       rel="noopener noreferrer" 
-                      className="hover:text-primary transition-colors text-foreground font-medium text-xs sm:text-sm truncate max-w-[150px] sm:max-w-xs hover:underline"
+                      className="text-muted-foreground hover:text-primary transition-colors font-medium text-xs sm:text-sm truncate max-w-[150px] sm:max-w-xs"
                     >
                       {problem.title}
                     </a>
