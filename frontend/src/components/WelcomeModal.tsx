@@ -1,4 +1,5 @@
 import React from 'react';
+import { Sparkles, User, Zap } from 'lucide-react';
 import { Button } from './ui/button';
 
 interface WelcomeModalProps {
@@ -12,7 +13,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose }) => {
         {/* Header */}
         <div className="text-center flex flex-col items-center gap-3">
           <div className="w-16 h-16 bg-muted/40 border border-border rounded-full flex items-center justify-center mb-1 shadow-sm">
-            <span className="text-3xl">🚀</span>
+            <Sparkles className="h-7 w-7 text-[#ffa116]" />
           </div>
           <h2 className="text-2xl md:text-3xl font-bold tracking-tight font-space-grotesk text-foreground">
             Welcome to CP Problem Finder
@@ -31,7 +32,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose }) => {
           {/* Card 1: Personal Account */}
           <div className="bg-muted/10 border border-border/50 rounded-xl p-5 flex flex-col gap-4 transition-all duration-200 hover:bg-muted/20 hover:border-border hover:-translate-y-0.5 hover:shadow-md">
             <div className="flex items-center gap-2.5">
-              <span className="text-xl">👤</span>
+              <User className="h-5 w-5 text-blue-500 shrink-0" />
               <h3 className="text-sm md:text-base font-semibold text-foreground">
                 Personal Account (Google Sign-In)
               </h3>
@@ -52,7 +53,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose }) => {
           {/* Card 2: Demo Sandbox */}
           <div className="bg-muted/10 border border-border/50 rounded-xl p-5 flex flex-col gap-4 transition-all duration-200 hover:bg-muted/20 hover:border-border hover:-translate-y-0.5 hover:shadow-md">
             <div className="flex items-center gap-2.5">
-              <span className="text-xl">🚀</span>
+              <Zap className="h-5 w-5 text-orange-500 shrink-0" />
               <h3 className="text-sm md:text-base font-semibold text-foreground">
                 Demo Workspace (Guest Mode)
               </h3>
