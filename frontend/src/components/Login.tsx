@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import styles from './Login.module.css';
+import React, { useState } from 'react';
+import { Search, FileText, Terminal } from 'lucide-react';
 import { WelcomeModal } from './WelcomeModal';
+import { Button } from './ui/button';
 
-export function LoginPage() {
+export const LoginPage: React.FC = () => {
   const API_URL = import.meta.env.VITE_API_URL || '';
   const [isLoading, setIsLoading] = useState(false);
   const [showWelcome, setShowWelcome] = useState(() => {
@@ -17,11 +18,6 @@ export function LoginPage() {
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     try {
-      // Redirect directly to the FastAPI backend to start the OAuth flow
-      // Ensure this URL matches your actual FastAPI server address
-      
-      // Use window.top to break out of iframes (like those from URL cloaking services),
-      // as OAuth providers like Google will block rendering inside an iframe.
       if (window.top) {
         window.top.location.href = `${API_URL}/auth/login`;
       } else {
@@ -29,7 +25,6 @@ export function LoginPage() {
       }
     } catch (error) {
       console.error('Login failed:', error);
-      // Fallback in case accessing window.top is strictly blocked
       window.location.href = `${API_URL}/auth/login`;
     } finally {
       setIsLoading(false);
@@ -53,31 +48,36 @@ export function LoginPage() {
   };
 
   return (
-    <div className={styles['login-container']}>
+    <div className="min-h-screen bg-linear-to-br from-neutral-950 via-neutral-900 to-neutral-950 flex items-center justify-center relative overflow-hidden font-geist px-4 py-8">
       {showWelcome && <WelcomeModal onClose={handleCloseWelcome} />}
-      <div className={styles['login-background']}>
-        {/* Decorative code snippets */}
-        <div className={`${styles['code-snippet']} ${styles['code-snippet-1']}`}>&lt;/&gt;</div>
-        <div className={`${styles['code-snippet']} ${styles['code-snippet-2']}`}>{'{ }'}</div>
-        <div className={`${styles['code-snippet']} ${styles['code-snippet-3']}`}>C++</div>
-        <div className={`${styles['code-snippet']} ${styles['code-snippet-4']}`}>&lt;/7</div>
+      
+      {/* Background Decorative Snippets */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none select-none">
+        <div className="absolute top-[10%] left-[5%] text-4xl font-bold font-mono text-primary opacity-30">&lt;/&gt;</div>
+        <div className="absolute bottom-[20%] left-[10%] text-3xl font-bold font-mono text-primary opacity-20">{"{ }"}</div>
+        <div className="absolute top-[30%] right-[8%] text-5xl font-bold font-mono text-primary opacity-25">C++</div>
+        <div className="absolute bottom-[15%] right-[5%] text-4xl font-bold font-mono text-primary opacity-20">&lt;/&gt;</div>
       </div>
 
-      <div className={styles['login-card']}>
-        {/* Logo and Title */}
-        <div className={styles['login-header']}>
-          <div className={styles['logo-icon']}>CP</div>
-          <h1 className={styles['login-title']}>
-            Welcome to <span className={styles['brand-text']}>CP Problem Finder</span>
+      {/* Login Card */}
+      <div className="relative z-10 bg-card/65 backdrop-blur-md border border-border/80 rounded-2xl p-6 sm:p-8 md:p-12 w-full max-w-lg shadow-2xl animate-in fade-in zoom-in-95 duration-500 text-foreground">
+        
+        {/* Logo and Header */}
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-linear-to-br from-[#ffa116] via-[#ff9345] to-[#ff3d00] rounded-xl flex items-center justify-center text-2xl font-bold text-white mx-auto mb-4 shadow-lg shadow-orange-500/20 dark:shadow-orange-950/20 font-space-grotesk">
+            CP
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight font-space-grotesk text-foreground">
+            Welcome to <span className="bg-linear-to-b from-[#ffa116] via-[#ff9345] to-[#ff3d00] bg-clip-text text-transparent">CP Problem Finder</span>
           </h1>
-          <p className={styles['login-subtitle']}>
+          <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
             Search, explore and master Data Structures & Algorithms
           </p>
         </div>
 
         {/* Google Login Button */}
         <button
-          className={styles['google-login-btn']}
+          className="w-full h-11 flex items-center justify-center gap-3 px-4 bg-white hover:bg-neutral-50 active:scale-[0.98] text-neutral-900 border border-neutral-200 rounded-lg text-sm font-semibold cursor-pointer shadow-sm transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
           onClick={handleGoogleLogin}
           disabled={isLoading}
         >
@@ -91,83 +91,72 @@ export function LoginPage() {
         </button>
 
         {/* Divider */}
-        <div className={styles.divider}>
+        <div className="flex items-center gap-3 my-5 text-muted-foreground/60 text-xs font-semibold uppercase tracking-wider before:content-[''] before:flex-1 before:h-[1px] before:bg-border/60 after:content-[''] after:flex-1 after:h-[1px] after:bg-border/60">
           <span>or</span>
         </div>
 
-        {/* Guest Login Container (Replacing Security Message) */}
-        <div className={styles['guest-login-container']}>
-          <button
-            className={styles['guest-login-btn']}
+        {/* Guest Login Container */}
+        <div className="flex flex-col gap-2 mb-6">
+          <Button
+            variant="outline"
+            className="w-full h-11 flex items-center justify-center gap-3 px-4 font-semibold text-sm cursor-pointer hover:bg-muted/50 border-border/80"
             onClick={handleGuestLogin}
             disabled={isLoading}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-muted-foreground">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
               <circle cx="12" cy="7" r="4" />
             </svg>
             Continue as guest
-          </button>
-          <p className={styles['guest-subtitle']}>
+          </Button>
+          <p className="text-xs text-muted-foreground/80 text-center">
             Want to explore all features? Try the Demo Workspace.
           </p>
         </div>
 
         {/* Features Section */}
-        <div className={styles['features-section']}>
-          <div className={styles.feature}>
-            <div className={`${styles['feature-icon']} ${styles['feature-icon-1']}`}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1 0-3.12 3 3 0 0 1 0-3.88 2.5 2.5 0 0 1 0-3.12A2.5 2.5 0 0 1 9.5 2Z"/>
-                <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 0-3.12 3 3 0 0 0 0-3.88 2.5 2.5 0 0 0 0-3.12A2.5 2.5 0 0 0 14.5 2Z"/>
-              </svg>
+        <div className="bg-muted/30 border border-border/50 rounded-xl p-5 flex flex-col gap-4">
+          <div className="flex gap-3.5 items-start">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-purple-500/10 border border-purple-500/25 shadow-xs text-purple-500 dark:text-purple-400">
+              <Search className="h-4.5 w-4.5" />
             </div>
-            <div className={styles['feature-content']}>
-              <h3 className={styles['feature-title']}>Find Problems by Pattern</h3>
-              <p className={styles['feature-desc']}>Search across tags, techniques, and difficulty levels.</p>
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-foreground">Find Problems by Pattern</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">Search across tags, techniques, and difficulty levels.</p>
             </div>
           </div>
 
-          <div className={styles.feature}>
-            <div className={`${styles['feature-icon']} ${styles['feature-icon-2']}`}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-                <polyline points="14 2 14 8 20 8" />
-                <line x1="16" y1="13" x2="8" y2="13" />
-                <line x1="16" y1="17" x2="8" y2="17" />
-                <line x1="10" y1="9" x2="8" y2="9" />
-              </svg>
+          <div className="flex gap-3.5 items-start">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-blue-500/10 border border-blue-500/25 shadow-xs text-blue-500 dark:text-blue-400">
+              <FileText className="h-4.5 w-4.5" />
             </div>
-            <div className={styles['feature-content']}>
-              <h3 className={styles['feature-title']}>Structured Revision Notes</h3>
-              <p className={styles['feature-desc']}>Maintain observations, mistakes, and related problems.</p>
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-foreground">Structured Revision Notes</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">Maintain observations, mistakes, and related problems.</p>
             </div>
           </div>
 
-          <div className={styles.feature}>
-            <div className={`${styles['feature-icon']} ${styles['feature-icon-3']}`}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <ellipse cx="12" cy="5" rx="9" ry="3"/>
-                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
-                <path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/>
-              </svg>
+          <div className="flex gap-3.5 items-start">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-orange-500/10 border border-orange-500/25 shadow-xs text-orange-500 dark:text-orange-400">
+              <Terminal className="h-4.5 w-4.5" />
             </div>
-            <div className={styles['feature-content']}>
-              <h3 className={styles['feature-title']}>Demo Workspace</h3>
-              <p className={styles['feature-desc']}>Experience full CRUD functionality without affecting real-time data.</p>
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-foreground">Demo Workspace</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">Experience full CRUD functionality without affecting real-time data.</p>
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className={styles['login-footer']}>
+        <div className="text-center text-[11px] text-muted-foreground/80 mt-6 leading-relaxed">
           <p>
             By continuing, you agree to our{' '}
-            <a href="#" className={styles['footer-link']}>Terms of Service</a> and{' '}
-            <a href="#" className={styles['footer-link']}>Privacy Policy</a>.
+            <a href="#" className="text-primary hover:text-primary/80 transition-colors underline underline-offset-2">Terms of Service</a> and{' '}
+            <a href="#" className="text-primary hover:text-primary/80 transition-colors underline underline-offset-2">Privacy Policy</a>.
           </p>
         </div>
       </div>
     </div>
   );
-}
+};
+export default LoginPage;
