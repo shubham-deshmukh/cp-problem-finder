@@ -53,10 +53,12 @@ def setup_test_index(meili_client):
     task_docs = index.add_documents(DUMMY_DATA)
     task_searchable = index.update_searchable_attributes(["title", "tags", "platform"])
     task_filterable = index.update_filterable_attributes(["platform", "difficulty", "tags", "isNew", "link"])
+    task_sortable = index.update_sortable_attributes(["id"])
     
     meili_client.wait_for_task(task_docs.task_uid)
     meili_client.wait_for_task(task_searchable.task_uid)
     meili_client.wait_for_task(task_filterable.task_uid)
+    meili_client.wait_for_task(task_sortable.task_uid)
     
     yield
     

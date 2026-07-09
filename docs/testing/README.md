@@ -73,14 +73,43 @@ npm run test
 
 ---
 
+## 🎭 End-to-End Tests (Playwright)
+
+The E2E test suite uses **Playwright** to run full-browser user scenarios against the running frontend and backend.
+
+### Setup
+Ensure Playwright and browser binaries are installed:
+```bash
+cd frontend
+npm install
+npx playwright install chromium
+```
+
+### Running Tests
+Make sure both the FastAPI backend (`http://localhost:8000`) and the Vite dev server (`http://localhost:5173`) are running. Then execute:
+```bash
+# Run E2E tests in headless mode
+npx playwright test
+
+# Run E2E tests in headed mode with UI/HTML reports
+npx playwright test --ui
+```
+
+### Covered Test Cases (Guest Journey Flow)
+The script `frontend/e2e/guest_flow.spec.ts` verifies:
+1. **Welcome Modal Onboarding:** Checks for welcome guide dialog rendering on new sessions, tests its dismissal, and verifies state persistence.
+2. **Guest Sandbox Authentication:** Verifies "Continue as guest" triggers dynamic, isolated index creation on backend and routes user to dashboard.
+3. **Problem Addition (CRUD):** Fills in a problem link, selects platform/difficulty/tags, writes markdown notes, and submits. Asserts title scraping and addition.
+4. **Markdown Drawer Verification:** Opens the problem's notes drawer, updates contents with raw markdown, saves, and asserts proper HTML formatting preview.
+5. **Fuzzy Search & Clear:** Verifies that searching filters the list and that clearing the input refreshes the list with all items in descending order of creation.
+6. **Theme Toggling:** Clicks theme button and verifies body CSS `color-scheme` updates dynamically.
+7. **Session Teardown:** Logs out and verifies index teardown on backend and user redirection back to landing page.
+
+---
+
 ## 🧪 Upcoming Test Suites
 
-### 1. End-to-End Tests (Playwright)
-*(To be implemented in Phase 4)*
-- Target: Full browser simulations (Guest onboarding, problem addition, notes rendering, fuzzy filtering).
-- Command: `npx playwright test`.
-
-### 2. Load & Concurrency Tests (k6)
+### Load & Concurrency Tests (k6)
 *(To be implemented in Phase 5)*
 - Target: Concurrency limits on guest workspace creation, fuzzy search latency under load, and background cleanup task locks.
 - Command: `k6 run load_test.js`.

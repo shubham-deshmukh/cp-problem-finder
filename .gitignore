@@ -10,3 +10,7 @@ backend/.env
 # Python Cache
 backend/__pycache__/
 
+# Playwright Test Outputs
+test-results/
+playwright-report/
+
