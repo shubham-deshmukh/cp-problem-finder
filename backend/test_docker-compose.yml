@@ -1,0 +1,12 @@
+version: '3.3'
+
+services:
+  meilisearch-test:
+    image: getmeili/meilisearch:v1.7
+    container_name: meilisearch-test
+    ports:
+      - "7701:7700"
+    environment:
+      - MEILI_MASTER_KEY=test-master-key-xyz-123-456
+    volumes:
+      - ./meili_data_test:/meili_data

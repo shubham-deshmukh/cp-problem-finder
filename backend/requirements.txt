@@ -6,3 +6,6 @@ httpx
 pydantic
 curl_cffi
 PyJWT
+pytest
+pytest-asyncio
+pytest-cov
