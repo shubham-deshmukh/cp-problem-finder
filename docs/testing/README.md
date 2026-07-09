@@ -107,9 +107,35 @@ The script `frontend/e2e/guest_flow.spec.ts` verifies:
 
 ---
 
-## 🧪 Upcoming Test Suites
+## ⚡ Load & Concurrency Tests (k6)
 
-### Load & Concurrency Tests (k6)
-*(To be implemented in Phase 5)*
-- Target: Concurrency limits on guest workspace creation, fuzzy search latency under load, and background cleanup task locks.
-- Command: `k6 run load_test.js`.
+The load test suite uses **k6** to profile API performance under concurrent user load.
+
+### Setup
+k6 must be installed on your local machine.
+- **Windows (winget)**:
+  ```powershell
+  winget install GrafanaLabs.k6 --accept-source-agreements --accept-package-agreements
+  ```
+- **macOS (Homebrew)**:
+  ```bash
+  brew install k6
+  ```
+
+### Running Tests
+Make sure the FastAPI backend (`http://localhost:8000`) is running. Then run k6:
+```bash
+# Execute load test script (using the absolute path to k6 if not in PATH)
+k6 run backend/load_tests/load_test.js
+```
+
+### Covered Load Scenarios & Target Metrics
+The script `backend/load_tests/load_test.js` simulates a ramping workload of up to **20 concurrent virtual users** over **1 minute and 15 seconds** executing the following path:
+1. **Dynamic Sandbox Allocation (1 VU Login):** Hits `GET /auth/guest` once per VU lifecycle, triggering index creation and JWT generation on the backend.
+2. **Concurrent Fuzzy Searches (95% Probability):** Hits `GET /search?q=...` with randomized query terms repeatedly, measuring search response time under load.
+3. **Problem Creation CRUD (5% Probability):** Hits `POST /problems` using the parsed guest auth token, checking database insertion performance under load.
+
+### Performance Thresholds
+The load test establishes strict SLAs to ensure backend reliability:
+- **`http_req_duration` SLA:** 95% of HTTP requests must complete in under **500ms** (`p(95) < 500`).
+- **`http_req_failed` SLA:** The HTTP request failure rate must remain under **1%** (`rate < 0.01`).
