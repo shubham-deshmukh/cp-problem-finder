@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import styles from './App.module.css';
 import { Header } from './components/Header';
 import { SearchBar } from './components/SearchBar';
 import { FAB } from './components/FAB';
@@ -97,15 +96,20 @@ function App() {
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
-    if (isDarkMode) {
-      document.documentElement.style.colorScheme = 'light';
-    } else {
-      document.documentElement.style.colorScheme = 'dark';
-    }
     if (isGuest) {
       completeStep('theme');
     }
   };
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      document.documentElement.style.colorScheme = 'dark';
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.style.colorScheme = 'light';
+    }
+  }, [isDarkMode]);
 
   // Mutation for adding a problem
   const addMutation = useMutation({
@@ -292,9 +296,9 @@ function App() {
       {!isAuthenticated ? (
         <LoginPage />
       ) : (
-        <div className={`${styles.app} ${isDarkMode ? 'dark-mode' : ''}`}>
+        <div className="min-h-screen bg-background text-foreground flex flex-col font-geist">
           <Header onThemeToggle={toggleTheme} isDarkMode={isDarkMode} />
-          <div className={styles['main-content']}>
+          <div className="flex-1 flex flex-col p-4 md:p-6 gap-5 max-w-7xl mx-auto w-full">
             {isGuest && <DemoTour progress={tourProgress} />}
             <SearchBar 
               searchValue={searchValue} 

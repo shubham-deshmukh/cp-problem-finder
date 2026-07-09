@@ -1,34 +1,40 @@
-import styles from './SearchBar.module.css';
+import React from 'react';
+import { Search, X } from 'lucide-react';
+import { Button } from './ui/button';
 
 interface SearchBarProps {
   searchValue: string;
   onSearchChange: (value: string) => void;
 }
 
-export function SearchBar({ searchValue, onSearchChange }: SearchBarProps) {
+export const SearchBar: React.FC<SearchBarProps> = ({ searchValue, onSearchChange }) => {
   return (
-    <div className={styles['search-container']}>
-      <div id="tour-search-bar" className={styles['search-bar']}>
-        <span className={styles['search-icon']}>🔍</span>
+    <div className="w-full font-geist">
+      <div
+        id="tour-search-bar"
+        className="relative flex items-center bg-card border border-border focus-within:border-primary focus-within:ring-1 focus-within:ring-ring rounded-xl px-4 py-2.5 gap-3 max-w-xl mx-auto w-full transition-all duration-200 shadow-xs"
+      >
+        <Search className="h-4 w-4 text-muted-foreground shrink-0" />
         <input
           type="text"
-          className={styles['search-input']}
+          className="flex-1 bg-transparent border-0 outline-none text-sm text-foreground placeholder:text-muted-foreground/75"
           placeholder="Search by title or tag..."
           value={searchValue}
           onChange={(e) => onSearchChange(e.target.value)}
         />
-        {/* <span className="search-suggestion">
-          {searchValue ? '' : 'dynamic programming, recursion, graphs...'}
-        </span> */}
         {searchValue && (
-          <button 
-            className={styles['clear-button']}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 rounded-md hover:bg-muted/50 text-muted-foreground hover:text-foreground p-0 cursor-pointer flex items-center justify-center shrink-0 border-0"
             onClick={() => onSearchChange('')}
+            title="Clear search"
           >
-            ✕
-          </button>
+            <X className="h-3.5 w-3.5" />
+          </Button>
         )}
       </div>
     </div>
   );
-}
+};
+export default SearchBar;
