@@ -3,6 +3,7 @@ import { FileText, Pencil, Trash2 } from 'lucide-react';
 import { Tag } from './Tag';
 import { type Problem } from '../types';
 import { Button } from './ui/button';
+import * as Tooltip from '@radix-ui/react-tooltip';
 
 interface ProblemTableProps {
   problems: Problem[];
@@ -98,9 +99,49 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
 
                 <td className="px-4 py-4 align-middle">
                   <div className="flex flex-wrap gap-1.5 items-center">
-                    {problem.tags.map((tag, idx) => (
-                      <Tag key={idx} text={tag} />
-                    ))}
+                    {problem.tags.length <= 3 ? (
+                      problem.tags.map((tag, idx) => (
+                        <Tag key={idx} text={tag} />
+                      ))
+                    ) : (
+                      <>
+                        {/* First 3 tags always visible (matching reference repo) */}
+                        {problem.tags.slice(0, 3).map((tag, idx) => (
+                          <Tag key={idx} text={tag} />
+                        ))}
+                        
+                        {/* Radix UI Tooltip Portal to prevent cutoffs */}
+                        <Tooltip.Provider delayDuration={150}>
+                          <Tooltip.Root>
+                            <Tooltip.Trigger asChild>
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-muted text-muted-foreground text-xs border border-border select-none cursor-help font-semibold hover:text-foreground transition-colors">
+                                +{problem.tags.length - 3}
+                              </span>
+                            </Tooltip.Trigger>
+                            <Tooltip.Portal>
+                              <Tooltip.Content 
+                                className="bg-card border border-border rounded-lg shadow-xl px-3 py-2 z-50 max-w-xs animate-in fade-in zoom-in-95 duration-100 flex flex-col gap-1.5"
+                                side="top"
+                                align="center"
+                                sideOffset={6}
+                              >
+                                <span className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground select-none border-b border-border pb-1">
+                                  More tags
+                                </span>
+                                <div className="flex flex-wrap gap-1 max-w-[200px]">
+                                  {problem.tags.slice(3).map((tag, idx) => (
+                                    <span key={idx} className="inline-flex items-center px-1.5 py-0.5 rounded bg-muted text-foreground text-[10px] font-semibold border border-border/40 whitespace-nowrap">
+                                      {tag}
+                                    </span>
+                                  ))}
+                                </div>
+                                <Tooltip.Arrow className="fill-card stroke-border stroke-[1px] -mt-[0.5px]" width={11} height={5} />
+                              </Tooltip.Content>
+                            </Tooltip.Portal>
+                          </Tooltip.Root>
+                        </Tooltip.Provider>
+                      </>
+                    )}
                     {problem.isNew && (
                       <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-emerald-500/20 dark:bg-emerald-500/25 border border-emerald-500/30 text-emerald-500 dark:text-emerald-400 text-[10px] font-bold tracking-wider uppercase">
                         New
