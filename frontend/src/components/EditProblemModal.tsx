@@ -27,7 +27,6 @@ export const EditProblemModal: React.FC<EditProblemModalProps> = ({
   const [platform, setPlatform] = useState('Leetcode');
   const [difficulty, setDifficulty] = useState<DifficultyLevel>('Easy');
   const [tags, setTags] = useState<string[]>([]);
-  const [notes, setNotes] = useState('');
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [isFetchingTags, setIsFetchingTags] = useState(false);
 
@@ -39,7 +38,6 @@ export const EditProblemModal: React.FC<EditProblemModalProps> = ({
       setPlatform(problem.platform);
       setDifficulty(problem.difficulty as DifficultyLevel);
       setTags(problem.tags);
-      setNotes(problem.notes || '');
 
       const fetchTags = async () => {
         setIsFetchingTags(true);
@@ -82,7 +80,14 @@ export const EditProblemModal: React.FC<EditProblemModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(problem.id, { title, link, platform, difficulty, tags, notes });
+    onSubmit(problem.id, { 
+      title, 
+      link, 
+      platform, 
+      difficulty, 
+      tags, 
+      notes: problem.notes || '' // Preserve existing notes during metadata updates
+    });
   };
 
   return (
@@ -205,20 +210,6 @@ export const EditProblemModal: React.FC<EditProblemModalProps> = ({
                 ))}
               </select>
             </div>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="edit-notes" className="text-sm font-semibold text-foreground">
-              Notes / Hints (Markdown supported)
-            </label>
-            <textarea 
-              id="edit-notes" 
-              className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground/60 focus-visible:ring-1 focus-visible:outline-none focus-visible:ring-ring text-foreground disabled:opacity-60 disabled:cursor-not-allowed resize-y" 
-              value={notes} 
-              onChange={(e) => setNotes(e.target.value)} 
-              placeholder="e.g. Think dynamic programming, count subproblems carefully." 
-              disabled={isLoading}
-            />
           </div>
 
           <div className="flex justify-end gap-3 mt-6">
