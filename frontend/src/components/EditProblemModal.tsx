@@ -3,6 +3,7 @@ import { type Problem, type DifficultyLevel } from '../types';
 import { useAuthStore } from '../stores/authStore';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
+import { CustomSelect } from './ui/CustomSelect';
 
 interface EditProblemModalProps {
   isOpen: boolean;
@@ -67,8 +68,7 @@ export const EditProblemModal: React.FC<EditProblemModalProps> = ({
 
   if (!isOpen || !problem) return null;
 
-  const handleAddTag = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedTag = e.target.value;
+  const handleAddTag = (selectedTag: string) => {
     if (selectedTag && !tags.includes(selectedTag)) {
       setTags([...tags, selectedTag]);
     }
@@ -160,56 +160,47 @@ export const EditProblemModal: React.FC<EditProblemModalProps> = ({
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="edit-difficulty" className="text-sm font-semibold text-foreground">
+            <label className="text-sm font-semibold text-foreground">
               Difficulty
             </label>
-            <select 
-              id="edit-difficulty" 
-              className="flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-sm shadow-xs transition-colors focus-visible:ring-1 focus-visible:outline-none focus-visible:ring-ring text-foreground disabled:opacity-60 disabled:cursor-not-allowed" 
-              value={difficulty} 
-              onChange={(e) => setDifficulty(e.target.value as DifficultyLevel)} 
+            <CustomSelect 
+              value={difficulty}
+              options={['Easy', 'Medium', 'High']}
+              onChange={(val) => setDifficulty(val as DifficultyLevel)}
               disabled={isLoading}
-            >
-              <option value="Easy">Easy</option>
-              <option value="Medium">Medium</option>
-              <option value="High">High</option>
-            </select>
+            />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="edit-tags" className="text-sm font-semibold text-foreground">
+            <label className="text-sm font-semibold text-foreground">
               Tags
             </label>
-            <div className="flex flex-wrap gap-1.5 min-h-[38px] p-1.5 border border-input rounded-md bg-transparent items-center text-sm text-foreground">
-              {tags.map(tag => (
-                <span 
-                  key={tag} 
-                  className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-muted text-foreground text-xs border border-border"
-                >
-                  {tag}
-                  <button 
-                    type="button" 
-                    onClick={() => handleRemoveTag(tag)} 
-                    className="text-xs text-muted-foreground hover:text-foreground cursor-pointer transition-colors border-0 bg-transparent flex items-center justify-center p-0 font-semibold"
+            {tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-1.5">
+                {tags.map(tag => (
+                  <span 
+                    key={tag} 
+                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-muted text-foreground text-xs border border-border"
                   >
-                    &times;
-                  </button>
-                </span>
-              ))}
-              <select 
-                onChange={handleAddTag} 
-                value="" 
-                className="flex-1 border-0 outline-none bg-transparent text-sm min-w-[130px] text-muted-foreground focus:ring-0 cursor-pointer disabled:opacity-60"
-                disabled={isLoading || isFetchingTags}
-              >
-                <option value="" disabled className="bg-card text-muted-foreground">
-                  {isFetchingTags ? 'Loading tags...' : 'Select a tag...'}
-                </option>
-                {availableTags.filter(t => !tags.includes(t)).map(t => (
-                  <option key={t} value={t} className="bg-card text-foreground">{t}</option>
+                    {tag}
+                    <button 
+                      type="button" 
+                      onClick={() => handleRemoveTag(tag)} 
+                      className="text-xs text-muted-foreground hover:text-foreground cursor-pointer transition-colors border-0 bg-transparent flex items-center justify-center p-0 font-semibold"
+                    >
+                      &times;
+                    </button>
+                  </span>
                 ))}
-              </select>
-            </div>
+              </div>
+            )}
+            <CustomSelect 
+              value=""
+              placeholder={isFetchingTags ? 'Loading tags...' : 'Select a tag...'}
+              options={availableTags.filter(t => !tags.includes(t))}
+              onChange={handleAddTag}
+              disabled={isLoading || isFetchingTags}
+            />
           </div>
 
           <div className="flex justify-end gap-3 mt-6">
