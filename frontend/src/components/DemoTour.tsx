@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Sparkles, PartyPopper } from 'lucide-react';
+import { Search, Sparkles, PartyPopper, CheckCircle2, Circle } from 'lucide-react';
 import { Button } from './ui/button';
 
 export interface TourProgress {
@@ -124,7 +124,11 @@ export const DemoTour: React.FC<DemoTourProps> = ({ progress }) => {
           progress.search ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-border/60 hover:border-primary/20'
         }`}>
           <div className="flex items-start gap-2.5">
-            <span className="text-base shrink-0 select-none">{progress.search ? '✅' : '⚪'}</span>
+            {progress.search ? (
+              <CheckCircle2 className="h-4.5 w-4.5 text-emerald-500 shrink-0 mt-0.5" />
+            ) : (
+              <Circle className="h-4.5 w-4.5 text-muted-foreground/45 shrink-0 mt-0.5" />
+            )}
             <div className="min-w-0">
               <h3 className="text-xs sm:text-sm font-semibold text-foreground truncate">1. Fuzzy Search</h3>
               <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
@@ -149,7 +153,11 @@ export const DemoTour: React.FC<DemoTourProps> = ({ progress }) => {
           progress.theme ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-border/60 hover:border-primary/20'
         }`}>
           <div className="flex items-start gap-2.5">
-            <span className="text-base shrink-0 select-none">{progress.theme ? '✅' : '⚪'}</span>
+            {progress.theme ? (
+              <CheckCircle2 className="h-4.5 w-4.5 text-emerald-500 shrink-0 mt-0.5" />
+            ) : (
+              <Circle className="h-4.5 w-4.5 text-muted-foreground/45 shrink-0 mt-0.5" />
+            )}
             <div className="min-w-0">
               <h3 className="text-xs sm:text-sm font-semibold text-foreground truncate">2. Toggle Theme</h3>
               <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
@@ -174,7 +182,11 @@ export const DemoTour: React.FC<DemoTourProps> = ({ progress }) => {
           progress.add ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-border/60 hover:border-primary/20'
         }`}>
           <div className="flex items-start gap-2.5">
-            <span className="text-base shrink-0 select-none">{progress.add ? '✅' : '⚪'}</span>
+            {progress.add ? (
+              <CheckCircle2 className="h-4.5 w-4.5 text-emerald-500 shrink-0 mt-0.5" />
+            ) : (
+              <Circle className="h-4.5 w-4.5 text-muted-foreground/45 shrink-0 mt-0.5" />
+            )}
             <div className="min-w-0">
               <h3 className="text-xs sm:text-sm font-semibold text-foreground truncate">3. Add Problem</h3>
               <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
@@ -199,7 +211,11 @@ export const DemoTour: React.FC<DemoTourProps> = ({ progress }) => {
           progress.notes ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-border/60 hover:border-primary/20'
         }`}>
           <div className="flex items-start gap-2.5">
-            <span className="text-base shrink-0 select-none">{progress.notes ? '✅' : '⚪'}</span>
+            {progress.notes ? (
+              <CheckCircle2 className="h-4.5 w-4.5 text-emerald-500 shrink-0 mt-0.5" />
+            ) : (
+              <Circle className="h-4.5 w-4.5 text-muted-foreground/45 shrink-0 mt-0.5" />
+            )}
             <div className="min-w-0">
               <h3 className="text-xs sm:text-sm font-semibold text-foreground truncate">4. Write Revision Notes</h3>
               <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
