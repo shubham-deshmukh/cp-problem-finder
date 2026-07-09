@@ -24,9 +24,8 @@ During competitive programming contests, developers often recall solving a simil
 - 🧪 **Demo Workspace (Guest Mode):** Instant, one-click access to a fully isolated, sandboxed environment. Authenticates via secure cookies. Try out all admin CRUD actions safely without registration.
 - 📝 **Problem CRUD:** Add, update, or delete problems. The system dynamically scrapes problem titles directly from platform URLs.
 - 🏷️ **Tag-based Organization:** Group problems by specific algorithmic techniques (e.g., `segment trees`, `graphs`, `recursion`).
-- 🔍 **Instant Fuzzy Search:** Search-as-you-type searching across titles, tags, and platforms powered by Meilisearch.
-- 📊 **Difficulty Categorization:** Classify problems by difficulty levels (`Easy`, `Medium`, `High`).
-- ✍️ **Markdown Notes:** Add rich observations, templates, edge cases, or code snippets to each problem using an interactive side-drawer.
+- 🔍 **Instant Fuzzy Search & Filters:** Search-as-you-type fuzzy queries powered by Meilisearch, paired with dedicated custom dropdown filters for Platform and Difficulty to scope down problems instantly.
+- ✍️ **Markdown Notes:** Write complex code blocks, revision hints, corner cases, and editorials using a spacious, fullscreen overlay editor supporting tabbed Write and Preview modes.
 - 🌓 **Dark & Light Mode:** Seamless, system-matching theme switcher.
 - 📱 **Fully Responsive UI:** Clean desktop and mobile views built from scratch with custom CSS variables.
 - 🛡️ **Role-Based Access Control (RBAC):** Restricts data modification to verified administrators, keeping public indices read-only.
