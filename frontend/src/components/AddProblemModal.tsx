@@ -135,6 +135,7 @@ export const AddProblemModal: React.FC<AddProblemModalProps> = ({
               Platform
             </label>
             <CustomSelect 
+              id="platform"
               value={platform}
               options={['Leetcode', 'Codeforces', 'CSES', 'Atcoder', 'Codechef']}
               onChange={setPlatform}
@@ -147,6 +148,7 @@ export const AddProblemModal: React.FC<AddProblemModalProps> = ({
               Difficulty
             </label>
             <CustomSelect 
+              id="difficulty"
               value={difficulty}
               options={['Easy', 'Medium', 'High']}
               onChange={(val) => setDifficulty(val as DifficultyLevel)}
@@ -178,6 +180,7 @@ export const AddProblemModal: React.FC<AddProblemModalProps> = ({
               </div>
             )}
             <CustomSelect 
+              id="tag-select"
               value=""
               placeholder={isFetchingTags ? 'Loading tags...' : 'Select a tag...'}
               options={availableTags.filter(t => !tags.includes(t))}

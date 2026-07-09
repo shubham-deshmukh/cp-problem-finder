@@ -33,7 +33,7 @@ export const UserDropdown: React.FC = () => {
       )}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="rounded-full cursor-pointer h-9 w-9 p-0 flex items-center justify-center bg-transparent border-0 hover:bg-muted/50 transition-colors">
+          <Button variant="ghost" size="icon" title="User menu" className="rounded-full cursor-pointer h-9 w-9 p-0 flex items-center justify-center bg-transparent border-0 hover:bg-muted/50 transition-colors">
             <Avatar className="h-8 w-8">
               {user?.picture && !imageError ? (
                 <AvatarImage

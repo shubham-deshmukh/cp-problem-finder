@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 interface CustomSelectProps {
+  id?: string;
   value: string;
   options: string[];
   onChange: (value: string) => void;
@@ -9,6 +10,7 @@ interface CustomSelectProps {
 }
 
 export const CustomSelect: React.FC<CustomSelectProps> = ({
+  id,
   value,
   options,
   onChange,
@@ -35,6 +37,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   return (
     <div ref={containerRef} className="relative w-full">
       <button
+        id={id}
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}

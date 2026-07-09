@@ -30,16 +30,21 @@ test.describe('CP Problem Finder E2E Guest Flow', () => {
     // 6. Fill in the problem link and configurations
     // We use "3sum-closest" as LeetCode URL which isn't in default seeded data
     await page.fill('#link', 'https://leetcode.com/problems/3sum-closest/');
-    await page.selectOption('#platform', 'Leetcode');
-    await page.selectOption('#difficulty', 'Medium');
 
-    // Add tags by selecting from dropdown inside form group
-    const tagSelect = page.locator('label[for="tags"] + div select');
-    await tagSelect.selectOption('two pointers');
-    await tagSelect.selectOption('binary search');
+    // Click platform select to open it and pick Leetcode
+    await page.click('#platform');
+    await page.click('button:has-text("Leetcode")');
 
-    // Add initial notes
-    await page.fill('#notes', 'Try sorting the array and using two pointers.');
+    // Click difficulty select to open it and pick Medium
+    await page.click('#difficulty');
+    await page.click('button:has-text("Medium")');
+
+    // Add tags by selecting from CustomSelect tag adder
+    await page.click('#tag-select');
+    await page.click('button:has-text("two pointers")');
+    
+    await page.click('#tag-select');
+    await page.click('button:has-text("binary search")');
 
     // Submit the form to trigger backend scraping and database indexing
     const submitBtn = page.locator('button:has-text("Analyze & Add")');
@@ -59,16 +64,11 @@ test.describe('CP Problem Finder E2E Guest Flow', () => {
     await expect(firstRowNotesBtn).toBeVisible();
     await firstRowNotesBtn.click();
 
-    // Verify the drawer is visible and shows the initial notes
+    // Verify the drawer is visible and automatically opens in write mode because notes are empty
     const drawerTitle = page.locator('h2 a:has-text("3Sum Closest")');
     await expect(drawerTitle).toBeVisible();
-    await expect(page.locator('text=Try sorting the array and using two pointers.')).toBeVisible();
 
-    // 9. Edit the notes with markdown syntax
-    const editNotesBtn = page.locator('button:has-text("Edit Notes")');
-    await expect(editNotesBtn).toBeVisible();
-    await editNotesBtn.click();
-
+    // 9. Enter the notes in the textarea (already in write mode by default for empty notes)
     const notesTextarea = page.locator('textarea[placeholder*="Add notes"]');
     await expect(notesTextarea).toBeVisible();
     await notesTextarea.fill('This is revised notes.\n\n- Note Item 1\n- Note Item 2');
@@ -112,7 +112,7 @@ test.describe('CP Problem Finder E2E Guest Flow', () => {
     const userMenuBtn = page.locator('button[title="User menu"]');
     await userMenuBtn.click();
 
-    const signOutBtn = page.locator('button:has-text("Sign out")');
+    const signOutBtn = page.locator('[role="menuitem"]:has-text("Sign out")');
     await expect(signOutBtn).toBeVisible();
     await signOutBtn.click();
 
