@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useLayoutEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Header } from './components/Header';
 import { SearchBar } from './components/SearchBar';
@@ -101,15 +101,15 @@ function App() {
     }
   };
 
-  useEffect(() => {
-    if (isDarkMode) {
+  useLayoutEffect(() => {
+    if (isDarkMode || !isAuthenticated) {
       document.documentElement.classList.add('dark');
       document.documentElement.style.colorScheme = 'dark';
     } else {
       document.documentElement.classList.remove('dark');
       document.documentElement.style.colorScheme = 'light';
     }
-  }, [isDarkMode]);
+  }, [isDarkMode, isAuthenticated]);
 
   // Mutation for adding a problem
   const addMutation = useMutation({
