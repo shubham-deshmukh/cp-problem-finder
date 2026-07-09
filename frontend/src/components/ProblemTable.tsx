@@ -46,7 +46,7 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
             const diffClass = difficultyStyles[diffKey] || difficultyStyles.easy;
 
             return (
-              <tr key={problem.id} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
+              <tr key={problem.id} className="group border-b border-border last:border-0 hover:bg-[#d5e6f7] dark:hover:bg-[#151515] transition-colors">
                 <td className="px-4 py-4 align-middle">
                   <div className="flex items-center gap-2">
                     <img 
@@ -58,7 +58,7 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
                         e.currentTarget.onerror = null;
                       }}
                     />
-                    <span className="font-semibold text-muted-foreground text-xs sm:text-sm hidden sm:inline">
+                    <span className="font-semibold text-foreground/85 dark:text-muted-foreground group-hover:text-foreground dark:group-hover:text-primary text-xs sm:text-sm hidden sm:inline transition-colors">
                       {problem.platform}
                     </span>
                   </div>
@@ -70,7 +70,7 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
                       href={problem.link} 
                       target="_blank" 
                       rel="noopener noreferrer" 
-                      className="text-muted-foreground hover:text-primary transition-colors font-medium text-xs sm:text-sm truncate max-w-[150px] sm:max-w-xs"
+                      className="text-foreground/85 dark:text-muted-foreground group-hover:text-foreground dark:group-hover:text-primary transition-colors font-medium text-xs sm:text-sm truncate max-w-[150px] sm:max-w-xs"
                     >
                       {problem.title}
                     </a>
