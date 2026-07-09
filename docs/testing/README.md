@@ -46,19 +46,41 @@ pytest --cov=. tests/
 
 ---
 
+## ⚛️ Frontend Unit & Store Tests (Vitest)
+
+The frontend unit test suite uses **Vitest** and **React Testing Library** to verify state management in the Zustand store.
+
+### Setup
+Ensure frontend dependencies (including Vitest, jsdom, and testing-library packages) are installed:
+```bash
+cd frontend
+npm install
+```
+
+### Running Tests
+Execute the Vitest runner from the `frontend/` directory:
+```bash
+# Run all tests once
+npm run test
+```
+
+### Covered Test Cases (Zustand Auth Store)
+1. **Initial State:** Verifies store defaults (`isAuthenticated: false`, `user: null`, `checkingAuth: true`).
+2. **Login Action:** Asserts `login(user)` correctly populates profile data and sets `isAuthenticated` to true.
+3. **Logout Action:** Mocks browser fetch, asserts a `POST /auth/logout` call, and resets the auth store to defaults.
+4. **CheckAuth Action (Success/Failure):** Mocks fetch to `/auth/me` with both successful (sets user profile) and failed (resets store state) scenarios.
+5. **Session Expiration Handler:** Verifies `handleSessionExpired()` triggers a browser alert once and resets state when the session expires, preventing redundant prompts on subsequent triggers.
+
+---
+
 ## 🧪 Upcoming Test Suites
 
-### 1. Frontend Unit & Store Tests (Vitest)
-*(To be implemented in Phase 3)*
-- Target: Zustand Auth store and React helper components.
-- Command: `npm run test` (in `frontend/` directory).
-
-### 2. End-to-End Tests (Playwright)
+### 1. End-to-End Tests (Playwright)
 *(To be implemented in Phase 4)*
 - Target: Full browser simulations (Guest onboarding, problem addition, notes rendering, fuzzy filtering).
 - Command: `npx playwright test`.
 
-### 3. Load & Concurrency Tests (k6)
+### 2. Load & Concurrency Tests (k6)
 *(To be implemented in Phase 5)*
 - Target: Concurrency limits on guest workspace creation, fuzzy search latency under load, and background cleanup task locks.
 - Command: `k6 run load_test.js`.
