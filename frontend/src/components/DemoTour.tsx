@@ -74,13 +74,21 @@ export const DemoTour: React.FC<DemoTourProps> = ({ progress }) => {
         className="flex items-center justify-between bg-card border border-primary/25 rounded-xl px-5 py-3 mb-6 shadow-xs cursor-pointer hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 font-geist text-foreground select-none" 
         onClick={toggleCollapse}
       >
-        <div className="flex items-center gap-2.5 text-xs sm:text-sm font-bold text-foreground">
+        <div className="flex items-center gap-2.5 text-xs sm:text-sm font-bold text-foreground font-space-grotesk">
           <Sparkles className="h-4 w-4 text-[#ffa116]" />
           <span>Demo Workspace Guide ({completedCount}/{totalSteps} completed)</span>
         </div>
-        <span className="text-[10px] sm:text-xs font-bold text-primary hover:underline">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="text-[10px] sm:text-xs font-bold text-primary hover:bg-primary/10 rounded-md py-1 h-auto cursor-pointer border-0"
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleCollapse();
+          }}
+        >
           Expand Guide ▾
-        </span>
+        </Button>
       </div>
     );
   }
