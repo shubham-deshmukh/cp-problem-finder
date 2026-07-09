@@ -1,20 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import styles from './AddProblemModal.module.css';
 import { type Problem, type DifficultyLevel } from '../types';
 import { useAuthStore } from '../stores/authStore';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
 
 interface EditProblemModalProps {
   isOpen: boolean;
   isLoading?: boolean;
   problem: Problem | null;
   onClose: () => void;
-  // Using 'any' for data to bypass rigid types since title is added
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onSubmit: (id: number, data: any) => void; 
 }
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
-const EditProblemModal: React.FC<EditProblemModalProps> = ({ isOpen, isLoading = false, problem, onClose, onSubmit }) => {
+export const EditProblemModal: React.FC<EditProblemModalProps> = ({
+  isOpen,
+  isLoading = false,
+  problem,
+  onClose,
+  onSubmit,
+}) => {
   const [title, setTitle] = useState('');
   const [link, setLink] = useState('');
   const [platform, setPlatform] = useState('Leetcode');
@@ -79,27 +86,66 @@ const EditProblemModal: React.FC<EditProblemModalProps> = ({ isOpen, isLoading =
   };
 
   return (
-    <div className={styles['modal-overlay']} onClick={onClose}>
-      <div className={styles['modal-content']} onClick={e => e.stopPropagation()}>
-        <div className={styles['modal-header']}>
-          <h2>Edit Problem</h2>
-          <button type="button" className={styles['close-button']} onClick={onClose} disabled={isLoading}>&times;</button>
+    <div className="fixed inset-0 bg-neutral-950/50 backdrop-blur-xs flex items-center justify-center z-50 p-4 md:p-6 overflow-y-auto animate-in fade-in duration-200" onClick={onClose}>
+      <div className="bg-card border border-border rounded-xl shadow-xl max-w-lg w-full p-6 flex flex-col m-auto animate-in zoom-in-95 slide-in-from-bottom-5 duration-300 text-foreground font-geist" onClick={e => e.stopPropagation()}>
+        
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-lg font-bold tracking-tight font-space-grotesk text-foreground">
+            Edit Problem
+          </h2>
+          <button 
+            type="button" 
+            className="text-2xl text-muted-foreground hover:text-foreground cursor-pointer focus:outline-none transition-colors border-0 bg-transparent disabled:opacity-50" 
+            onClick={onClose} 
+            disabled={isLoading}
+          >
+            &times;
+          </button>
         </div>
         
-        <form onSubmit={handleSubmit}>
-          <div className={styles['form-group']}>
-            <label htmlFor="edit-title">Title</label>
-            <input type="text" id="edit-title" className={styles['form-control']} value={title} onChange={(e) => setTitle(e.target.value)} required disabled={isLoading} />
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="edit-title" className="text-sm font-semibold text-foreground">
+              Title
+            </label>
+            <Input 
+              type="text" 
+              id="edit-title" 
+              value={title} 
+              onChange={(e) => setTitle(e.target.value)} 
+              required 
+              disabled={isLoading} 
+            />
           </div>
 
-          <div className={styles['form-group']}>
-            <label htmlFor="edit-link">Problem Link</label>
-            <input type="url" id="edit-link" className={styles['form-control']} value={link} readOnly disabled title="Problem link cannot be changed" />
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="edit-link" className="text-sm font-semibold text-foreground">
+              Problem Link
+            </label>
+            <Input 
+              type="url" 
+              id="edit-link" 
+              value={link} 
+              readOnly 
+              disabled 
+              title="Problem link cannot be changed" 
+              className="bg-muted/50 cursor-not-allowed border-border/80"
+            />
           </div>
 
-          <div className={styles['form-group']}>
-            <label htmlFor="edit-platform">Platform</label>
-            <select id="edit-platform" className={styles['form-control']} value={platform} disabled title="Platform cannot be changed">
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="edit-platform" className="text-sm font-semibold text-foreground">
+              Platform
+            </label>
+            <select 
+              id="edit-platform" 
+              className="flex h-9 w-full rounded-md border border-input bg-muted/50 px-3 py-1 text-sm shadow-xs transition-colors text-foreground cursor-not-allowed border-border/80" 
+              value={platform} 
+              disabled 
+              title="Platform cannot be changed"
+            >
               <option value="Leetcode">Leetcode</option>
               <option value="Codeforces">Codeforces</option>
               <option value="CSES">CSES</option>
@@ -108,31 +154,66 @@ const EditProblemModal: React.FC<EditProblemModalProps> = ({ isOpen, isLoading =
             </select>
           </div>
 
-          <div className={styles['form-group']}>
-            <label htmlFor="edit-difficulty">Difficulty</label>
-            <select id="edit-difficulty" className={styles['form-control']} value={difficulty} onChange={(e) => setDifficulty(e.target.value as DifficultyLevel)} disabled={isLoading}>
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="edit-difficulty" className="text-sm font-semibold text-foreground">
+              Difficulty
+            </label>
+            <select 
+              id="edit-difficulty" 
+              className="flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-sm shadow-xs transition-colors focus-visible:ring-1 focus-visible:outline-none focus-visible:ring-ring text-foreground disabled:opacity-60 disabled:cursor-not-allowed" 
+              value={difficulty} 
+              onChange={(e) => setDifficulty(e.target.value as DifficultyLevel)} 
+              disabled={isLoading}
+            >
               <option value="Easy">Easy</option>
               <option value="Medium">Medium</option>
               <option value="High">High</option>
             </select>
           </div>
 
-          <div className={styles['form-group']}>
-            <label htmlFor="edit-tags">Tags</label>
-            <div className={styles['form-control']} style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', minHeight: '38px', padding: '6px 12px', alignItems: 'center', height: 'auto' }}>
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="edit-tags" className="text-sm font-semibold text-foreground">
+              Tags
+            </label>
+            <div className="flex flex-wrap gap-1.5 min-h-[38px] p-1.5 border border-input rounded-md bg-transparent items-center text-sm text-foreground">
               {tags.map(tag => (
-                <span key={tag} style={{ background: 'rgba(150, 150, 150, 0.2)', color: 'inherit', padding: '2px 8px', borderRadius: '4px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}>{tag}<button type="button" onClick={() => handleRemoveTag(tag)} style={{ border: 'none', background: 'transparent', color: 'inherit', opacity: 0.7, cursor: 'pointer', padding: '0', fontSize: '1.1rem', lineHeight: '1', display: 'flex' }}>&times;</button></span>
+                <span 
+                  key={tag} 
+                  className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-muted text-foreground text-xs border border-border"
+                >
+                  {tag}
+                  <button 
+                    type="button" 
+                    onClick={() => handleRemoveTag(tag)} 
+                    className="text-xs text-muted-foreground hover:text-foreground cursor-pointer transition-colors border-0 bg-transparent flex items-center justify-center p-0 font-semibold"
+                  >
+                    &times;
+                  </button>
+                </span>
               ))}
-              <select onChange={handleAddTag} value="" style={{ border: 'none', outline: 'none', background: 'transparent', color: 'inherit', flexGrow: 1, minWidth: '150px', padding: '0', fontSize: 'inherit' }} disabled={isLoading || isFetchingTags}><option value="" disabled style={{ background: 'var(--bg, #1e1e1e)' }}>{isFetchingTags ? 'Loading tags...' : 'Select a tag...'}</option>{availableTags.filter(t => !tags.includes(t)).map(t => (<option key={t} value={t} style={{ background: 'var(--bg, #1e1e1e)' }}>{t}</option>))}</select>
+              <select 
+                onChange={handleAddTag} 
+                value="" 
+                className="flex-1 border-0 outline-none bg-transparent text-sm min-w-[130px] text-muted-foreground focus:ring-0 cursor-pointer disabled:opacity-60"
+                disabled={isLoading || isFetchingTags}
+              >
+                <option value="" disabled className="bg-card text-muted-foreground">
+                  {isFetchingTags ? 'Loading tags...' : 'Select a tag...'}
+                </option>
+                {availableTags.filter(t => !tags.includes(t)).map(t => (
+                  <option key={t} value={t} className="bg-card text-foreground">{t}</option>
+                ))}
+              </select>
             </div>
           </div>
 
-          <div className={styles['form-group']}>
-            <label htmlFor="edit-notes">Notes / Hints (Markdown supported)</label>
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="edit-notes" className="text-sm font-semibold text-foreground">
+              Notes / Hints (Markdown supported)
+            </label>
             <textarea 
               id="edit-notes" 
-              className={styles['form-control']} 
-              style={{ minHeight: '80px', resize: 'vertical' }}
+              className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground/60 focus-visible:ring-1 focus-visible:outline-none focus-visible:ring-ring text-foreground disabled:opacity-60 disabled:cursor-not-allowed resize-y" 
               value={notes} 
               onChange={(e) => setNotes(e.target.value)} 
               placeholder="e.g. Think dynamic programming, count subproblems carefully." 
@@ -140,9 +221,23 @@ const EditProblemModal: React.FC<EditProblemModalProps> = ({ isOpen, isLoading =
             />
           </div>
 
-          <div className={styles['modal-actions']}>
-            <button type="button" className={styles['btn-cancel']} onClick={onClose} disabled={isLoading}>Cancel</button>
-            <button type="submit" className={styles['btn-submit']} disabled={isLoading}>{isLoading ? 'Updating...' : 'Update Problem'}</button>
+          <div className="flex justify-end gap-3 mt-6">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onClose} 
+              disabled={isLoading}
+              className="cursor-pointer"
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="submit" 
+              disabled={isLoading}
+              className="cursor-pointer min-w-[130px]"
+            >
+              {isLoading ? 'Updating...' : 'Update Problem'}
+            </Button>
           </div>
         </form>
       </div>
