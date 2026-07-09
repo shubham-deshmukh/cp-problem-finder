@@ -24,5 +24,6 @@ htmlcov/
 
 # Local Data and Logs
 meili_data/
+meili_data_test/
 *.log
 *.sqlite3
