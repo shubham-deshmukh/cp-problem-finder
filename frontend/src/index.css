@@ -157,22 +157,23 @@
 /* Guided Tour Spotlight Animation */
 @keyframes tour-pulse-anim {
   0% {
-    box-shadow: 0 0 0 0 var(--accent);
-    outline: 3px solid var(--accent);
+    box-shadow: 0 0 0 0 rgba(255, 161, 22, 0.8);
   }
   70% {
-    box-shadow: 0 0 0 12px rgba(170, 59, 255, 0);
-    outline: 3px solid rgba(170, 59, 255, 0);
+    box-shadow: 0 0 0 16px rgba(255, 161, 22, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(170, 59, 255, 0);
-    outline: 3px solid rgba(170, 59, 255, 0);
+    box-shadow: 0 0 0 0 rgba(255, 161, 22, 0);
   }
 }
 
 .tour-pulse {
-  animation: tour-pulse-anim 1.2s ease-in-out infinite;
-  outline-offset: 3px;
+  animation: tour-pulse-anim 1.2s ease-out infinite;
+  z-index: 50 !important;
+}
+
+.tour-pulse:not([class*="fixed"]):not([class*="absolute"]):not([class*="sticky"]) {
+  position: relative !important;
 }
 
 /* Markdown Preview Styles */
