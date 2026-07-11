@@ -8,17 +8,13 @@ export const Tag: React.FC<TagProps> = ({ text }) => {
   const normalizedText = text.toLowerCase();
   
   // Dynamic color array avoiding colors used for difficulty (emerald/green, amber/orange/yellow, rose/red)
+  // Restricted to 5 highly distinct, high-contrast colors (blue, purple, teal, fuchsia, slate)
   const colors = [
-    'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20',
-    'bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20',
-    'bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20',
-    'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20',
-    'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20',
-    'bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20',
-    'bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400 border border-fuchsia-500/20',
-    'bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20',
-    'bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20',
-    'bg-pink-500/10 text-pink-600 dark:text-pink-400 border border-pink-500/20',
+    'bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30',
+    'bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30',
+    'bg-teal-500/15 text-teal-700 dark:text-teal-300 border border-teal-500/30',
+    'bg-fuchsia-500/15 text-fuchsia-700 dark:text-fuchsia-300 border border-fuchsia-500/30',
+    'bg-slate-500/15 text-slate-700 dark:text-slate-300 border border-slate-500/30',
   ];
 
   // Helper to generate a stable hash from a string
