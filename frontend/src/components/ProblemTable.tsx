@@ -144,9 +144,7 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
                                 </span>
                                 <div className="flex flex-wrap gap-1 max-w-[200px]">
                                   {problem.tags.slice(3).map((tag, idx) => (
-                                    <span key={idx} className="inline-flex items-center px-1.5 py-0.5 rounded bg-muted text-foreground text-[10px] font-semibold border border-border/40 whitespace-nowrap">
-                                      {tag}
-                                    </span>
+                                    <Tag key={idx} text={tag} />
                                   ))}
                                 </div>
                                 <Tooltip.Arrow className="fill-card stroke-border stroke-[1px] -mt-[0.5px]" width={11} height={5} />
