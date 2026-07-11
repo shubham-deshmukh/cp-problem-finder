@@ -1,8 +1,8 @@
 version: '3.3'
 
 services:
-    dsasearch-backend:
-        container_name: dsasearch-backend
+    cp-problem-finder-backend:
+        container_name: cp-problem-finder-backend
         build: .
         restart: always
         environment:
