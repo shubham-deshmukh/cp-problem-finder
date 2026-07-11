@@ -338,7 +338,7 @@ function App() {
                   <CustomSelect
                     value={selectedDifficulty}
                     placeholder="Difficulty"
-                    options={['All Difficulties', 'Easy', 'Medium', 'High']}
+                    options={['All Difficulties', 'Easy', 'Medium', 'Hard']}
                     onChange={setSelectedDifficulty}
                   />
                 </div>

@@ -5,7 +5,7 @@ export interface Problem {
   platformIcon: string;
   title: string;
   tags: string[];
-  difficulty: 'Easy' | 'Medium' | 'High';
+  difficulty: 'Easy' | 'Medium' | 'Hard';
   link: string;
   notes?: string;
   isNew?: boolean;
@@ -21,4 +21,4 @@ export interface ProblemData {
 
 export type TagType = 'dynamic programming' | 'strings' | 'greedy' | 'recursion' | 'graphs';
 
-export type DifficultyLevel = 'Easy' | 'Medium' | 'High';
+export type DifficultyLevel = 'Easy' | 'Medium' | 'Hard';

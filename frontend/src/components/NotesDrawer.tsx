@@ -188,7 +188,7 @@ export const NotesDrawer: React.FC<NotesDrawerProps> = ({
   const difficultyStyles: Record<string, string> = {
     easy: 'text-emerald-500 bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/20',
     medium: 'text-amber-500 bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/20',
-    high: 'text-rose-500 bg-rose-500/10 dark:bg-rose-500/15 border border-rose-500/20',
+    hard: 'text-rose-500 bg-rose-500/10 dark:bg-rose-500/15 border border-rose-500/20',
   };
   const diffKey = problem.difficulty.toLowerCase();
   const diffClass = difficultyStyles[diffKey] || difficultyStyles.easy;

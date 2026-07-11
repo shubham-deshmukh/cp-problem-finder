@@ -150,7 +150,7 @@ export const AddProblemModal: React.FC<AddProblemModalProps> = ({
             <CustomSelect 
               id="difficulty"
               value={difficulty}
-              options={['Easy', 'Medium', 'High']}
+              options={['Easy', 'Medium', 'Hard']}
               onChange={(val) => setDifficulty(val as DifficultyLevel)}
               disabled={isLoading}
             />

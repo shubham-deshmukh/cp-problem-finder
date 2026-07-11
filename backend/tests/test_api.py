@@ -81,7 +81,7 @@ async def test_standard_user_permissions(generate_token):
         response = await ac.post("/problems", json=new_problem, headers=headers)
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
-        response = await ac.put("/problems/1", json={"difficulty": "High"}, headers=headers)
+        response = await ac.put("/problems/1", json={"difficulty": "Hard"}, headers=headers)
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
         response = await ac.delete("/problems/1", headers=headers)

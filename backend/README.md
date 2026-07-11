@@ -121,7 +121,7 @@ erDiagram
         string title "Scraped or custom problem name"
         string link "URL address"
         string[] tags "Algorithmic category tags"
-        string difficulty "Easy / Medium / High"
+        string difficulty "Easy / Medium / Hard"
         string notes "Markdown revision observations"
         boolean isNew "Flag for recently indexed problems"
     }

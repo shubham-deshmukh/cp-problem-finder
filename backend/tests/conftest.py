@@ -11,6 +11,7 @@ os.environ["INDEX_NAME"] = "dsa_problems_test"
 os.environ["ADMIN_EMAILS"] = "admin@example.com"
 os.environ["JWT_SECRET"] = "test_jwt_secret_key"
 os.environ["FRONTEND_URL"] = "http://localhost:5173"
+os.environ["CSV_PATH"] = os.path.join(os.path.dirname(__file__), "problems_test.csv")
 
 import meilisearch
 from main import app, client, DUMMY_DATA, JWT_SECRET, JWT_ALGORITHM
@@ -67,6 +68,13 @@ def setup_test_index(meili_client):
         meili_client.delete_index(index_name)
     except Exception:
         pass
+
+    csv_path = os.environ.get("CSV_PATH")
+    if csv_path and os.path.exists(csv_path):
+        try:
+            os.remove(csv_path)
+        except Exception:
+            pass
 
 @pytest.fixture
 def generate_token():

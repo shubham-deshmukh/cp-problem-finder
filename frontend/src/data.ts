@@ -7,7 +7,7 @@ export const mockProblems: Problem[] = [
     platformIcon: '◼️',
     title: 'Longest Common Subsequence',
     tags: ['dynamic programming', 'strings', 'greedy', 'recursion'],
-    difficulty: 'High',
+    difficulty: 'Hard',
     link: '',
   },
   {
@@ -16,7 +16,7 @@ export const mockProblems: Problem[] = [
     platformIcon: '📊',
     title: 'Edit Distance',
     tags: ['dynamic programming', 'graphs', 'graphs'],
-    difficulty: 'High',
+    difficulty: 'Hard',
     link: '',
   },
   {
@@ -34,7 +34,7 @@ export const mockProblems: Problem[] = [
     platformIcon: '🍳',
     title: 'Longest Connection',
     tags: ['dynamic programming', 'graphs', 'greedy'],
-    difficulty: 'High',
+    difficulty: 'Hard',
     link: '',
   },
   {
@@ -43,7 +43,7 @@ export const mockProblems: Problem[] = [
     platformIcon: '🍳',
     title: 'Traveling Pattern',
     tags: ['dynamic programming', 'greedy', 'recursion', 'recursion'],
-    difficulty: 'High',
+    difficulty: 'Hard',
     link: '',
   },
   {
@@ -52,7 +52,7 @@ export const mockProblems: Problem[] = [
     platformIcon: '📊',
     title: 'Longest Subsequence',
     tags: ['dynamic programming', 'greedy', 'recursion', 'graphs'],
-    difficulty: 'High',
+    difficulty: 'Hard',
     link: '',
   },
   {
@@ -61,7 +61,7 @@ export const mockProblems: Problem[] = [
     platformIcon: '🍳',
     title: 'Monestriatic Function',
     tags: ['dynamic programming', 'strings', 'greedy'],
-    difficulty: 'High',
+    difficulty: 'Hard',
     link: '',
   },
   {
@@ -70,7 +70,7 @@ export const mockProblems: Problem[] = [
     platformIcon: '🍳',
     title: 'Traveling Salesman',
     tags: ['dynamic programming', 'greedy', 'recursion', 'graphs'],
-    difficulty: 'High',
+    difficulty: 'Hard',
     link: '',
   },
   {
@@ -79,7 +79,7 @@ export const mockProblems: Problem[] = [
     platformIcon: '🔷',
     title: 'Longest Common Subsequence',
     tags: ['dynamic programming', 'strings', 'greedy', 'recursion'],
-    difficulty: 'High',
+    difficulty: 'Hard',
     link: '',
   },
   {
