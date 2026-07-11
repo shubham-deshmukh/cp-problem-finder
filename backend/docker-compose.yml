@@ -17,6 +17,8 @@ services:
           - ADMIN_EMAILS=${ADMIN_EMAILS}
         depends_on:
           - meilisearch
+        volumes:
+          - ./data:/app/data
         networks:
           - default
           - proxy
