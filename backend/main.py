@@ -45,6 +45,10 @@ raw_admin_emails = os.getenv("ADMIN_EMAILS", "")
 cleaned_emails = raw_admin_emails.replace('"', '').replace("'", "").replace("[", "").replace("]", "")
 ADMIN_EMAILS = [email.strip().lower() for email in cleaned_emails.split(",") if email.strip()]
 
+# 1.1 Initialize Repository Configuration
+from repository import BaseProblemRepository, CSVProblemRepository
+CSV_PATH = os.getenv("CSV_PATH", os.path.join(os.path.dirname(__file__), "data", "problems.csv"))
+
 client = meilisearch.Client(MEILI_URL, MEILI_MASTER_KEY)
 
 security = HTTPBearer(auto_error=False)
@@ -114,6 +118,9 @@ DUMMY_DATA = [
     {"id": 10, "platform": "CSES", "platformIcon": "🔷", "title": "Maximum Subarray Sum", "link": "https://cses.fi/problemset/task/1643", "tags": ["dynamic programming", "greedy"], "difficulty": "Medium", "isNew": True},
 ]
 
+def get_repository() -> BaseProblemRepository:
+    return CSVProblemRepository(csv_path=CSV_PATH, fallback_data=DUMMY_DATA)
+
 PLATFORM_ICONS = {
     "Leetcode": "◼️",
     "Codeforces": "📊",
@@ -124,18 +131,79 @@ PLATFORM_ICONS = {
 
 # Constant list of available tags
 AVAILABLE_TAGS = [
-    "dynamic programming",
-    "graphs",
-    "greedy",
-    "recursion",
-    "strings",
-    "trees",
-    "binary search",
-    "two pointers",
+    "array",
     "backtracking",
+    "biconnected component",
+    "binary indexed tree",
+    "binary search",
+    "binary search tree",
+    "binary tree",
     "bit manipulation",
-    "segment trees",
+    "bitmask",
+    "brainteaser",
+    "breadth-first search",
+    "bucket sort",
+    "combinatorics",
+    "concurrency",
+    "counting",
+    "counting sort",
+    "data stream",
+    "database",
+    "depth-first search",
+    "design",
+    "divide and conquer",
+    "doubly-linked list",
+    "dynamic programming",
+    "enumeration",
+    "eulerian circuit",
+    "game theory",
+    "geometry",
+    "graph theory",
+    "greedy",
+    "hash function",
+    "hash table",
+    "heap (priority queue)",
+    "interactive",
+    "iterator",
+    "linked list",
+    "math",
+    "matrix",
+    "memoization",
+    "merge sort",
+    "minimum spanning tree",
+    "monotonic queue",
+    "monotonic stack",
+    "number theory",
+    "ordered set",
+    "prefix sum",
+    "probability and statistics",
+    "queue",
+    "quickselect",
+    "radix sort",
+    "randomized",
+    "recursion",
+    "rejection sampling",
+    "reservoir sampling",
+    "rolling hash",
+    "segment tree",
+    "shell",
+    "shortest path",
+    "simulation",
+    "sliding window",
+    "sort",
+    "sorting",
+    "stack",
+    "string",
+    "string matching",
+    "strings",
+    "strongly connected component",
+    "suffix array",
+    "sweep line",
+    "topological sort",
+    "tree",
     "trie",
+    "two pointers",
+    "union-find",
 ]
 
 # Pydantic model for incoming frontend request
@@ -331,8 +399,12 @@ async def lifespan(app: FastAPI):
     try:
         index = client.index(INDEX_NAME)
         
+        # Load problems from repository
+        repo = CSVProblemRepository(csv_path=CSV_PATH, fallback_data=DUMMY_DATA)
+        problems = repo.get_all()
+        
         # Add documents to Meilisearch
-        index.add_documents(DUMMY_DATA)
+        index.add_documents(problems)
         
         # Configure Meilisearch settings
         # Searchable attributes dictate what fields Meilisearch looks at when querying
@@ -384,7 +456,7 @@ def search_problems(
     limit: int = Query(20, description="Max results to return"),
     offset: int = Query(0, description="Number of results to skip"),
     platform: Optional[str] = Query(None, description="Filter by platform (e.g., Leetcode)"),
-    difficulty: Optional[str] = Query(None, description="Filter by difficulty (e.g., High)"),
+    difficulty: Optional[str] = Query(None, description="Filter by difficulty (e.g., Hard)"),
     tag: Optional[str] = Query(None, description="Filter by a specific tag"),
     current_user: dict = Depends(get_current_user)
 ):
@@ -427,13 +499,21 @@ def search_problems(
     return search_results.get("hits", [])
 
 @app.post("/problems", status_code=201, response_model=Problem)
-async def add_problem(problem_in: ProblemCreate, current_user: dict = Depends(get_admin_user)):
+async def add_problem(
+    problem_in: ProblemCreate,
+    current_user: dict = Depends(get_admin_user),
+    repo: BaseProblemRepository = Depends(get_repository)
+):
     """
     Add a new DSA problem to the search index.
     """
     link_str = str(problem_in.link)
     index_name = current_user.get("index_name", INDEX_NAME)
+    is_guest = index_name.startswith("dsa_problems_guest_")
     
+    import zlib
+    prob_id = zlib.crc32(link_str.rstrip('/').encode('utf-8'))
+
     try:
         index = client.index(index_name)
         # Check if the problem already exists by filtering for the exact link
@@ -450,9 +530,9 @@ async def add_problem(problem_in: ProblemCreate, current_user: dict = Depends(ge
     # Determine the platform icon or use a default one
     platform_icon = PLATFORM_ICONS.get(problem_in.platform, "🌐")
 
-    # Construct the full problem dictionary with an auto-generated timestamp ID
+    # Construct the full problem dictionary
     problem_doc = {
-        "id": int(time.time()),
+        "id": prob_id,
         "platform": problem_in.platform,
         "platformIcon": platform_icon,
         "title": extracted_title,
@@ -462,6 +542,12 @@ async def add_problem(problem_in: ProblemCreate, current_user: dict = Depends(ge
         "notes": problem_in.notes or "",
         "isNew": True
     }
+
+    if not is_guest:
+        try:
+            problem_doc = repo.add(problem_doc)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
 
     try:
         index = client.index(index_name)
@@ -475,20 +561,32 @@ async def add_problem(problem_in: ProblemCreate, current_user: dict = Depends(ge
         raise HTTPException(status_code=500, detail="Database connection failed")
 
 @app.put("/problems/{problem_id}", response_model=Problem)
-async def update_problem(problem_id: int, problem_in: ProblemUpdate, current_user: dict = Depends(get_admin_user)):
+async def update_problem(
+    problem_id: int,
+    problem_in: ProblemUpdate,
+    current_user: dict = Depends(get_admin_user),
+    repo: BaseProblemRepository = Depends(get_repository)
+):
     """
     Update an existing DSA problem.
     """
     index_name = current_user.get("index_name", INDEX_NAME)
-    try:
-        index = client.index(index_name)
-        doc_obj = index.get_document(problem_id)
-        # Meilisearch returns a Document object; convert it to a dictionary
-        existing = doc_obj.__dict__ if hasattr(doc_obj, "__dict__") else doc_obj
-    except MeilisearchApiError:
-        raise HTTPException(status_code=404, detail="Problem not found")
-    except MeilisearchCommunicationError:
-        raise HTTPException(status_code=500, detail="Database connection failed")
+    is_guest = index_name.startswith("dsa_problems_guest_")
+    
+    # 1. Fetch existing problem
+    if is_guest:
+        try:
+            index = client.index(index_name)
+            doc_obj = index.get_document(problem_id)
+            existing = doc_obj.__dict__ if hasattr(doc_obj, "__dict__") else doc_obj
+        except MeilisearchApiError:
+            raise HTTPException(status_code=404, detail="Problem not found")
+        except MeilisearchCommunicationError:
+            raise HTTPException(status_code=500, detail="Database connection failed")
+    else:
+        existing = repo.get_by_id(problem_id)
+        if not existing:
+            raise HTTPException(status_code=404, detail="Problem not found")
         
     update_data = problem_in.model_dump(exclude_unset=True)
     if not update_data:
@@ -506,10 +604,15 @@ async def update_problem(problem_id: int, problem_in: ProblemUpdate, current_use
     update_data["id"] = problem_id
     
     try:
-        task = index.update_documents([update_data])
-        client.wait_for_task(task.task_uid)
-        # Return the merged document simulating Meilisearch's partial update
-        updated_doc = {**existing, **update_data}
+        index = client.index(index_name)
+        if is_guest:
+            task = index.update_documents([update_data])
+            client.wait_for_task(task.task_uid)
+            updated_doc = {**existing, **update_data}
+        else:
+            updated_doc = repo.update(problem_id, update_data)
+            task = index.update_documents([updated_doc])
+            client.wait_for_task(task.task_uid)
         return updated_doc
     except MeilisearchApiError as e:
         logger.error(f"Meilisearch API error while updating problem {problem_id}: {e}")
@@ -519,21 +622,35 @@ async def update_problem(problem_id: int, problem_in: ProblemUpdate, current_use
         raise HTTPException(status_code=500, detail="Database connection failed")
 
 @app.delete("/problems/{problem_id}", status_code=204)
-def delete_problem(problem_id: int, current_user: dict = Depends(get_admin_user)):
+def delete_problem(
+    problem_id: int,
+    current_user: dict = Depends(get_admin_user),
+    repo: BaseProblemRepository = Depends(get_repository)
+):
     """
     Delete a DSA problem from the search index.
     """
     index_name = current_user.get("index_name", INDEX_NAME)
+    is_guest = index_name.startswith("dsa_problems_guest_")
+    
     try:
         index = client.index(index_name)
         
-        # Verify the problem exists before attempting to delete
-        index.get_document(problem_id)
-        
+        if is_guest:
+            # Verify the problem exists in guest index before deletion
+            index.get_document(problem_id)
+        else:
+            # Verify and delete from repository
+            if not repo.get_by_id(problem_id):
+                raise HTTPException(status_code=404, detail="Problem not found")
+            repo.delete(problem_id)
+            
         # Queue the deletion task in Meilisearch and wait for it to complete
         task = index.delete_document(problem_id)
         client.wait_for_task(task.task_uid)
     except MeilisearchApiError:
+        raise HTTPException(status_code=404, detail="Problem not found")
+    except KeyError:
         raise HTTPException(status_code=404, detail="Problem not found")
     except MeilisearchCommunicationError:
         logger.error(f"Failed to connect to Meilisearch while deleting problem {problem_id}.")
